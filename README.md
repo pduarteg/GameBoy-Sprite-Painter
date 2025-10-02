@@ -15,7 +15,7 @@ Una pequeña aplicación web que permite **dibujar sprites de 8×8 píxeles con 
   - Comentarios indicando la fila correspondiente.
 - Botón **Importar** → pega un array previamente exportado y la cuadrícula se reconstruye.
 - Botón **Clear** → limpia todo el lienzo.
-- El array exportado es **100% compatible** con el formato usado en librerías de desarrollo para Game Boy (como en tu proyecto en C).
+- El array exportado es **100% compatible** con el formato usado en librerías de desarrollo para Game Boy.
 
 ## Uso rápido
 
