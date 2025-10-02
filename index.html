@@ -1,0 +1,204 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8"/>
+<title>GameBoy 8x8 Sprite Painter</title>
+<style>
+  body{font-family:monospace;background:#f0f7f0;padding:20px}
+  body{
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+  }
+  .board{display:grid;grid-template-columns:repeat(8,40px);grid-template-rows:repeat(8,40px);gap:4px}
+  .cell{width:40px;height:40px;border:1px solid #ccc;cursor:pointer}
+  .palette{margin-top:15px;display:flex;gap:10px}
+  .swatch{width:40px;height:40px;cursor:pointer;border:3px solid transparent}
+  .swatch.selected{border:2px solid #000}
+  textarea{width:100%;height:200px;margin-top:15px;font-family:monospace}
+  button{margin-top:10px;padding:6px 12px;margin-right:5px}
+
+  h2 {
+    font-weight: 900;
+    color: #346856;
+  }
+  button{
+    background-color: white;
+    border: solid 2px #346856;
+    width: 140px;
+    cursor: pointer;
+    font-weight: 500;
+    color: #346856;
+  }
+
+  button:hover {
+    background-color: #E0F8D0;
+  }
+
+  #out {
+    max-width: 570px;
+    padding: 10px;
+  }
+
+  .swatch{
+    border: solid 2px gray;
+  }
+
+  .swatch:hover {
+    border: solid 2px white;
+  }
+
+  textarea:hover {
+    border: 2px solid #346856;
+    border-radius: 5px;
+    transition: border-color 0.3s ease;
+  }
+
+  #out:focus {
+    border: 2px solid white;
+    border-radius: 5px;
+  }
+
+  #out::placeholder {
+    padding: 10px;
+  }
+</style>
+</head>
+<body>
+<h2>Paint 8x8 - Palette GameBoy</h2>
+<div class="board" id="board"></div>
+
+<div class="palette" id="palette"></div>
+<div>
+  <button id="exportBtn">Export C code</button>
+  <button id="importBtn">Import C code</button>
+  <button id="clearBtn">Clear paint area</button>
+  <button id="copyBtn">Copy code</button>
+</div>
+<textarea id="out" placeholder="The exported code appears here or paste one to import."></textarea>
+
+<script>
+const colors = [
+  "#E0F8D0", // 0
+  "#88C070", // 1
+  "#346856", // 2
+  "#081820"  // 3
+];
+let currentColor=3; // empieza en oscuro
+let grid = Array.from({length:8},()=>Array(8).fill(0));
+
+const board=document.getElementById("board");
+for(let y=0;y<8;y++){
+  for(let x=0;x<8;x++){
+    const cell=document.createElement("div");
+    cell.className="cell";
+    cell.dataset.x=x;cell.dataset.y=y;
+    cell.style.background=colors[0];
+    cell.onclick=(e)=>{
+      if(e.shiftKey){ grid[y][x]=0; }
+      else{ grid[y][x]=currentColor; }
+      render();
+    };
+    board.appendChild(cell);
+  }
+}
+
+const palette=document.getElementById("palette");
+colors.forEach((c,i)=>{
+  const s=document.createElement("div");
+  s.className="swatch";
+  s.style.background=c;
+  if(i===currentColor) s.classList.add("selected");
+  s.onclick=()=>{
+    currentColor=i;
+    document.querySelectorAll(".swatch").forEach(sw=>sw.classList.remove("selected"));
+    s.classList.add("selected");
+  };
+  palette.appendChild(s);
+});
+
+function render(){
+  [...board.children].forEach(cell=>{
+    const x=cell.dataset.x,y=cell.dataset.y;
+    cell.style.background=colors[grid[y][x]];
+  });
+}
+
+function toBin(b){return "0b"+b.toString(2).padStart(8,"0");}
+function exportArray(){
+  let lines=["unsigned char real_sprite[] = {"];
+  for(let y=0;y<8;y++){
+    let low=0,high=0;
+    for(let x=0;x<8;x++){
+      const val=grid[y][x];
+      const bit=7-x;
+      if(val&1) low|=(1<<bit);
+      if(val&2) high|=(1<<bit);
+    }
+    lines.push(`  // fila ${y+1}: byte bajo, byte alto`);
+    lines.push(`  ${toBin(low)}, ${toBin(high)},`);
+  }
+  lines.push("};");
+  document.getElementById("out").value=lines.join("\n");
+}
+
+// ---------- NUEVO: importar ----------
+function importArray(){
+  const text=document.getElementById("out").value;
+  const matches=[...text.matchAll(/0b([01]{8})\s*,\s*0b([01]{8})/g)];
+  if(matches.length<8){ alert("No se encontraron 8 filas válidas en el texto"); return; }
+
+  matches.slice(0,8).forEach((m,y)=>{
+    const low=parseInt(m[1],2);
+    const high=parseInt(m[2],2);
+    for(let x=0;x<8;x++){
+      const bit=7-x;
+      const lowBit=(low>>bit)&1;
+      const highBit=(high>>bit)&1;
+      const val=(highBit<<1)|lowBit; // reconstruir 0..3
+      grid[y][x]=val;
+    }
+  });
+  render();
+}
+
+// ---------- CLEAR --------------------
+document.getElementById("clearBtn").onclick = () => {
+  grid = Array.from({length:8},()=>Array(8).fill(0));
+  render();
+};
+
+document.getElementById("exportBtn").onclick=exportArray;
+document.getElementById("importBtn").onclick=importArray;
+
+// atajos de teclado: 0-3 para elegir color
+window.addEventListener("keydown",e=>{
+  if("0123".includes(e.key)){
+    currentColor=parseInt(e.key);
+    document.querySelectorAll(".swatch").forEach(sw=>sw.classList.remove("selected"));
+    palette.children[currentColor].classList.add("selected");
+  }
+});
+
+// ---------- COPY --------------------
+document.getElementById("copyBtn").onclick = () => {
+  const out = document.getElementById("out").value;
+  if(!out.trim()){
+    alert("No hay nada para copiar. Exporta o pega código primero.");
+    return;
+  }
+  navigator.clipboard.writeText(out)
+    .then(() => {
+      alert("✅ Código copiado al portapapeles");
+    })
+    .catch(() => {
+      alert("❌ No se pudo copiar automáticamente, copia manualmente.");
+    });
+};
+
+
+render();
+</script>
+</body>
+</html>
