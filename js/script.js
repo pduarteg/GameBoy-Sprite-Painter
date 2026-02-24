@@ -5,7 +5,7 @@ const colors = [
   "#081820"  // 3
 ];
 
-let currentColor = 3; // empieza en oscuro
+let currentColor = 3;
 let grid = Array.from({ length: 8 }, () => Array(8).fill(0));
 
 const board = document.getElementById("board");

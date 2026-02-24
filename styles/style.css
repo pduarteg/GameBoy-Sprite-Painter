@@ -6,18 +6,30 @@ body {
   flex-direction: column;
   justify-content: center;
   align-items: center;
+  min-height: 100vh;
+  box-sizing: border-box;
+  color: #346856;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 255, 255, 0.6); /* o rgba(0,0,0,0.4) para oscurecer */
+  z-index: -1;
 }
 
 .board {
   display: grid;
-  grid-template-columns: repeat(8, 40px);
-  grid-template-rows: repeat(8, 40px);
-  gap: 4px;
+  grid-template-columns: repeat(8, minmax(20px, 60px));
+  grid-template-rows: repeat(8, minmax(20px, 60px));
+  gap: 2px;
+  max-width: 480px;
 }
 
 .cell {
-  width: 40px;
-  height: 40px;
+  width: 100%;
+  aspect-ratio: 1 / 1;
   border: 1px solid #ccc;
   cursor: pointer;
 }
@@ -25,6 +37,8 @@ body {
 .palette {
   margin-top: 15px;
   display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
   gap: 10px;
 }
 
@@ -33,21 +47,15 @@ body {
   height: 40px;
   cursor: pointer;
   border: solid 2px gray;
-
   font-weight: 500;
   color: gray;
-  font-size: 24px;
+  font-size: 20px;
   text-align: center;
-  justify-content: center;
   line-height: 40px;
 }
 
 .swatch.selected {
   border: 2px solid #000;
-}
-
-.swatch:hover {
-  border: solid 2px white;
 }
 
 textarea {
@@ -59,7 +67,6 @@ textarea {
 
 textarea:hover {
   border: 2px solid #346856;
-  border-radius: 5px;
   transition: border-color 0.3s ease;
 }
 
@@ -77,31 +84,32 @@ textarea:hover {
   padding: 10px;
 }
 
-h2 {
-  font-weight: 900;
-  color: #346856;
-}
-
 button {
   margin-top: 10px;
-  padding: 6px 12px;
+  padding: 8px 12px;
   margin-right: 5px;
   background-color: white;
   border: solid 2px #346856;
-  width: 140px;
   cursor: pointer;
   font-weight: 500;
   color: #346856;
+  transition: background-color 0.3s;
 }
 
 button:hover {
   background-color: #E0F8D0;
 }
 
+.swatch:hover {
+  border: solid 2px white;
+}
+
 #preview {
   margin-top: 15px;
   border: 2px solid #346856;
   image-rendering: pixelated;
+  width: min(64px, 20vw);
+  height: auto;
 }
 
 footer {
@@ -111,11 +119,31 @@ footer {
   font-size: 14px;
   color: #346856;
   border-top: 2px solid #346856;
-  width: 100%;
+  width: 90%;
   max-width: 600px;
+  box-sizing: border-box;
 }
 
-footer p {
-  margin: 5px 0 0 0;
-  font-weight: 500;
+@media (max-width: 600px) {
+  h2 {
+    font-size: 18px;
+    text-align: center;
+  }
+
+  .swatch {
+    width: 35px;
+    height: 35px;
+    font-size: 16px;
+    line-height: 35px;
+  }
+
+  button {
+    width: 100%;
+    margin: 5px 0;
+  }
+
+  .board {
+    grid-template-columns: repeat(8, minmax(20px, 9vw));
+    gap: 2px;
+  }
 }
