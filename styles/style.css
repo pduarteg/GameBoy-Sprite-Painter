@@ -133,8 +133,9 @@ footer p {
   font-size: 16px;
 }
 
-select {
-  padding: 6px 12px;
+.custom-dropdown {
+  position: relative;
+  width: 250px;
   background-color: white;
   border: solid 2px #346856;
   font-family: monospace;
@@ -142,9 +143,52 @@ select {
   font-weight: bold;
   color: #346856;
   cursor: pointer;
+  user-select: none;
 }
 
-select:hover, select:focus {
+.dropdown-selected {
+  padding: 6px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.dropdown-selected::after {
+  content: "▼";
+  font-size: 10px;
+  margin-left: 10px;
+}
+
+.dropdown-options {
+  display: none;
+  position: absolute;
+  top: 100%;
+  left: -2px;
+  right: -2px;
+  background-color: white;
+  border: solid 2px #346856;
+  border-top: none;
+  z-index: 1000;
+}
+
+.dropdown-options.show {
+  display: block;
+}
+
+.dropdown-option {
+  padding: 8px 12px;
+  border-bottom: 2px solid #E0F8D0;
+}
+
+.dropdown-option:last-child {
+  border-bottom: none;
+}
+
+.dropdown-option:hover {
+  background-color: #88C070;
+  color: white;
+}
+
+.custom-dropdown:hover {
   background-color: #E0F8D0;
-  outline: none;
 }

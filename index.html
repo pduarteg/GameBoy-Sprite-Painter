@@ -14,11 +14,15 @@
   <canvas id="preview" width="64" height="64"></canvas>
   <div class="palette" id="palette"></div>
   <div class="format-container">
-    <label class="format-label" for="formatSelect">Formato:</label>
-    <select id="formatSelect">
-      <option value="binary">Binario (8 filas x 2 cols)</option>
-      <option value="hex">Hexadecimal (2 filas x 8 cols)</option>
-    </select>
+    <label class="format-label">Formato:</label>
+    <div class="custom-dropdown" id="formatDropdown">
+      <div class="dropdown-selected" id="dropdownSelected">Binario (8 filas x 2 cols)</div>
+      <div class="dropdown-options" id="dropdownOptions">
+        <div class="dropdown-option" data-value="binary">Binario (8 filas x 2 cols)</div>
+        <div class="dropdown-option" data-value="hex">Hexadecimal (2 filas x 8 cols)</div>
+      </div>
+    </div>
+    <input type="hidden" id="formatSelect" value="binary">
   </div>
   <div>
     <button id="exportBtn">Export C code</button>

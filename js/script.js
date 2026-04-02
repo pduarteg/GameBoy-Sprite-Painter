@@ -165,3 +165,30 @@ function render() {
 
 
 render();
+
+// --- Lógica del Dropdown Personalizado ---
+const formatDropdown = document.getElementById("formatDropdown");
+const dropdownOptions = document.getElementById("dropdownOptions");
+const dropdownSelected = document.getElementById("dropdownSelected");
+const formatInput = document.getElementById("formatSelect");
+
+formatDropdown.addEventListener("click", (e) => {
+  e.stopPropagation();
+  dropdownOptions.classList.toggle("show");
+});
+
+document.querySelectorAll(".dropdown-option").forEach(option => {
+  option.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const value = e.target.getAttribute("data-value");
+    const text = e.target.textContent;
+    
+    formatInput.value = value;
+    dropdownSelected.textContent = text;
+    dropdownOptions.classList.remove("show");
+  });
+});
+
+window.addEventListener("click", () => {
+  dropdownOptions.classList.remove("show");
+});
