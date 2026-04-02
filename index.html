@@ -13,6 +13,13 @@
   <h3>Previsualización</h3>
   <canvas id="preview" width="64" height="64"></canvas>
   <div class="palette" id="palette"></div>
+  <div class="format-container">
+    <label class="format-label" for="formatSelect">Formato:</label>
+    <select id="formatSelect">
+      <option value="binary">Binario (8 filas x 2 cols)</option>
+      <option value="hex">Hexadecimal (2 filas x 8 cols)</option>
+    </select>
+  </div>
   <div>
     <button id="exportBtn">Export C code</button>
     <button id="importBtn">Import C code</button>

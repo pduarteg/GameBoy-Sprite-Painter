@@ -9,28 +9,35 @@ Una pequeña aplicación web que permite **dibujar sprites de 8×8 píxeles con 
 - Paleta seleccionable con clics o con las teclas `0`, `1`, `2`, `3`.
 - **Click** pinta la celda con el color activo.
 - **Shift + click** limpia la celda (color 0).
-- Botón **Exportar** → genera un `unsigned char sprite[]` con:
-  - Dos bytes por fila (byte bajo y byte alto).
-  - Cada byte representado como literal binario `0bXXXXXXXX`.
-  - Comentarios indicando la fila correspondiente.
-- Botón **Importar** → pega un array previamente exportado y la cuadrícula se reconstruye.
+- Botón **Exportar** → genera un `unsigned char sprite[]` que puede tener dos formatos intercambiables en el menú desplegable:
+  - **Binario (8x2):** Dos bytes por fila. Representado como `0bXXXXXXXX`, ideal para ver la figura directamente en el código.
+  - **Hexadecimal (2x8):** Dos filas de 8 columnas. Representado como `0xXX`, ideal para compilar de forma más compacta con el estándar en C.
+- Botón **Importar** → pega un array previamente exportado (en cualquiera de los dos formatos) y la cuadrícula se reconstruye.
 - Botón **Clear** → limpia todo el lienzo.
-- El array exportado es **100% compatible** con el formato usado en librerías de desarrollo para Game Boy.
+- El array exportado es **100% compatible** con librerías Game Boy en C.
 
 ## Uso rápido
 
 1. Abre el archivo `index.html` en tu navegador.
 2. Dibuja tu sprite con los colores de la paleta.
-3. Pulsa **Exportar** → copia el array generado.
-4. Pega el código en tu archivo C, por ejemplo:
+3. Elige el formato deseado en el menú desplegable.
+4. Pulsa **Exportar C code** → usa el botón **Copy code**.
+5. Pega el código exportado en tu archivo C:
 
+**Si usaste Binario (8 filas x 2 valores):**
 ```c
 unsigned char real_sprite[] = {
-  // fila 1: byte bajo, byte alto
   0b00111100, 0b00000000,
-  // fila 2: byte bajo, byte alto
   0b01000010, 0b00000000,
-  // ...
+  // ... (hasta completar 8 líneas de código)
+};
+```
+
+**Si usaste Hexadecimal (2 filas x 8 valores):**
+```c
+unsigned char real_sprite[] = {
+  0x3C, 0x00, 0x42, 0x00, 0x99, 0x00, 0xA5, 0x00,
+  0x81, 0x00, 0xA5, 0x00, 0x99, 0x00, 0x42, 0x00
 };
 ```
 ## Compatibilidad

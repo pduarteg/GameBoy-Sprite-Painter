@@ -42,35 +42,63 @@ colors.forEach((c, i) => {
 });
 
 function toBin(b) { return "0b" + b.toString(2).padStart(8, "0"); }
+function toHex(b) { return "0x" + b.toString(16).padStart(2, "0").toUpperCase(); }
 
 function exportArray() {
+  const format = document.getElementById("formatSelect").value;
   let lines = ["unsigned char real_sprite[] = {"];
-  for (let y = 0; y < 8; y++) {
-    let low = 0, high = 0;
-    for (let x = 0; x < 8; x++) {
-      const val = grid[y][x];
-      const bit = 7 - x;
-      if (val & 1) low |= (1 << bit);
-      if (val & 2) high |= (1 << bit);
+  
+  if (format === "hex") {
+    let hexValues = [];
+    for (let y = 0; y < 8; y++) {
+      let low = 0, high = 0;
+      for (let x = 0; x < 8; x++) {
+        const val = grid[y][x];
+        const bit = 7 - x;
+        if (val & 1) low |= (1 << bit);
+        if (val & 2) high |= (1 << bit);
+      }
+      hexValues.push(toHex(low), toHex(high));
     }
-    //lines.push(`  // fila ${y + 1}: byte bajo, byte alto`);
-    lines.push(`  ${toBin(low)}, ${toBin(high)},`);
+    // Formato 2 filas de 8 columnas
+    lines.push(`  ${hexValues.slice(0, 8).join(", ")},`);
+    lines.push(`  ${hexValues.slice(8, 16).join(", ")}`);
+  } else {
+    for (let y = 0; y < 8; y++) {
+      let low = 0, high = 0;
+      for (let x = 0; x < 8; x++) {
+        const val = grid[y][x];
+        const bit = 7 - x;
+        if (val & 1) low |= (1 << bit);
+        if (val & 2) high |= (1 << bit);
+      }
+      lines.push(`  ${toBin(low)}, ${toBin(high)},`);
+    }
   }
+  
   lines.push("};");
   document.getElementById("out").value = lines.join("\n");
 }
 
 function importArray() {
   const text = document.getElementById("out").value;
-  const matches = [...text.matchAll(/0b([01]{8})\s*,\s*0b([01]{8})/g)];
+  const format = document.getElementById("formatSelect").value;
+  let matches = [];
+  
+  if (format === "hex") {
+    matches = [...text.matchAll(/0x([0-9a-fA-F]{2})\s*,\s*0x([0-9a-fA-F]{2})/g)];
+  } else {
+    matches = [...text.matchAll(/0b([01]{8})\s*,\s*0b([01]{8})/g)];
+  }
+
   if (matches.length < 8) { 
-    alert("No se encontraron 8 filas válidas en el texto"); 
+    alert(`No se encontraron 8 filas válidas en el texto para el formato ${format}`); 
     return; 
   }
 
   matches.slice(0, 8).forEach((m, y) => {
-    const low = parseInt(m[1], 2);
-    const high = parseInt(m[2], 2);
+    const low = parseInt(m[1], format === "hex" ? 16 : 2);
+    const high = parseInt(m[2], format === "hex" ? 16 : 2);
     for (let x = 0; x < 8; x++) {
       const bit = 7 - x;
       const lowBit = (low >> bit) & 1;

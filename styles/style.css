@@ -119,3 +119,32 @@ footer p {
   margin: 5px 0 0 0;
   font-weight: 500;
 }
+
+.format-container {
+  margin: 15px 0 10px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.format-label {
+  font-weight: 900;
+  color: #346856;
+  font-size: 16px;
+}
+
+select {
+  padding: 6px 12px;
+  background-color: white;
+  border: solid 2px #346856;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #346856;
+  cursor: pointer;
+}
+
+select:hover, select:focus {
+  background-color: #E0F8D0;
+  outline: none;
+}
