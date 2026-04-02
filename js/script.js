@@ -9,17 +9,6 @@ let currentColor = 3; // empieza en oscuro
 let grid = Array.from({ length: 8 }, () => Array(8).fill(0));
 
 const board = document.getElementById("board");
-const spriteNameInput = document.getElementById("spriteName");
-
-// Saneamiento en tiempo real
-spriteNameInput.addEventListener("input", (e) => {
-  let val = e.target.value.toLowerCase();
-  val = val.replace(/\s+/g, '_'); // espacios a guiones bajos
-  val = val.replace(/[^a-z0-9_]/g, ''); // eliminar caracteres raros
-  if (/^[0-9]/.test(val)) val = '_' + val; // no puede empezar con número en C
-  e.target.value = val;
-});
-
 for (let y = 0; y < 8; y++) {
   for (let x = 0; x < 8; x++) {
     const cell = document.createElement("div");
@@ -57,9 +46,8 @@ function toHex(b) { return "0x" + b.toString(16).padStart(2, "0").toUpperCase();
 
 function exportArray() {
   const format = document.getElementById("formatSelect").value;
-  const name = spriteNameInput.value.trim() || "mi_sprite";
-  let lines = [`unsigned char ${name}[] = {`];
-  
+  let lines = ["unsigned char real_sprite[] = {"];
+
   if (format === "hex") {
     let hexValues = [];
     for (let y = 0; y < 8; y++) {
@@ -87,7 +75,7 @@ function exportArray() {
       lines.push(`  ${toBin(low)}, ${toBin(high)},`);
     }
   }
-  
+
   lines.push("};");
   document.getElementById("out").value = lines.join("\n");
 }
@@ -96,22 +84,16 @@ function importArray() {
   const text = document.getElementById("out").value;
   const format = document.getElementById("formatSelect").value;
   let matches = [];
-  
-  // Detectar el nombre de la variable si es posible
-  const nameMatch = text.match(/unsigned char\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\[\]/);
-  if (nameMatch) {
-    spriteNameInput.value = nameMatch[1];
-  }
-  
+
   if (format === "hex") {
     matches = [...text.matchAll(/0x([0-9a-fA-F]{2})\s*,\s*0x([0-9a-fA-F]{2})/g)];
   } else {
     matches = [...text.matchAll(/0b([01]{8})\s*,\s*0b([01]{8})/g)];
   }
 
-  if (matches.length < 8) { 
-    alert(`No se encontraron 8 filas válidas en el texto para el formato ${format}`); 
-    return; 
+  if (matches.length < 8) {
+    alert(`No se encontraron 8 filas válidas en el texto para el formato ${format}`);
+    return;
   }
 
   matches.slice(0, 8).forEach((m, y) => {
@@ -121,7 +103,7 @@ function importArray() {
       const bit = 7 - x;
       const lowBit = (low >> bit) & 1;
       const highBit = (high >> bit) & 1;
-      const val = (highBit << 1) | lowBit; 
+      const val = (highBit << 1) | lowBit;
       grid[y][x] = val;
     }
   });
@@ -200,7 +182,7 @@ document.querySelectorAll(".dropdown-option").forEach(option => {
     e.stopPropagation();
     const value = e.target.getAttribute("data-value");
     const text = e.target.textContent;
-    
+
     formatInput.value = value;
     dropdownSelected.textContent = text;
     dropdownOptions.classList.remove("show");
