@@ -8,6 +8,37 @@ body {
   align-items: center;
 }
 
+.sprite-name-container {
+  margin-bottom: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.sprite-name-container label {
+  font-weight: 900;
+  color: #346856;
+  font-size: 18px;
+}
+
+#spriteName {
+  padding: 8px 12px;
+  border: 2px solid #346856;
+  font-family: monospace;
+  font-size: 16px;
+  font-weight: bold;
+  color: #346856;
+  text-align: center;
+  width: 200px;
+  background-color: white;
+}
+
+#spriteName:focus {
+  background-color: #E0F8D0;
+  outline: none;
+}
+
 .board {
   display: grid;
   grid-template-columns: repeat(8, 40px);

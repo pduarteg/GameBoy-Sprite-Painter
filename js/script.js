@@ -9,6 +9,17 @@ let currentColor = 3; // empieza en oscuro
 let grid = Array.from({ length: 8 }, () => Array(8).fill(0));
 
 const board = document.getElementById("board");
+const spriteNameInput = document.getElementById("spriteName");
+
+// Saneamiento en tiempo real
+spriteNameInput.addEventListener("input", (e) => {
+  let val = e.target.value.toLowerCase();
+  val = val.replace(/\s+/g, '_'); // espacios a guiones bajos
+  val = val.replace(/[^a-z0-9_]/g, ''); // eliminar caracteres raros
+  if (/^[0-9]/.test(val)) val = '_' + val; // no puede empezar con número en C
+  e.target.value = val;
+});
+
 for (let y = 0; y < 8; y++) {
   for (let x = 0; x < 8; x++) {
     const cell = document.createElement("div");
@@ -46,7 +57,8 @@ function toHex(b) { return "0x" + b.toString(16).padStart(2, "0").toUpperCase();
 
 function exportArray() {
   const format = document.getElementById("formatSelect").value;
-  let lines = ["unsigned char real_sprite[] = {"];
+  const name = spriteNameInput.value.trim() || "mi_sprite";
+  let lines = [`unsigned char ${name}[] = {`];
   
   if (format === "hex") {
     let hexValues = [];
@@ -84,6 +96,12 @@ function importArray() {
   const text = document.getElementById("out").value;
   const format = document.getElementById("formatSelect").value;
   let matches = [];
+  
+  // Detectar el nombre de la variable si es posible
+  const nameMatch = text.match(/unsigned char\s+([a-zA-Z_][a-zA-Z0-9_]*)\s*\[\]/);
+  if (nameMatch) {
+    spriteNameInput.value = nameMatch[1];
+  }
   
   if (format === "hex") {
     matches = [...text.matchAll(/0x([0-9a-fA-F]{2})\s*,\s*0x([0-9a-fA-F]{2})/g)];
