@@ -1,18 +1,36 @@
 <!doctype html>
 <html lang="es">
+
 <head>
-  <meta charset="utf-8"/>
+  <meta charset="utf-8" />
   <title>GameBoy 8x8 Sprite Painter</title>
   <link rel="stylesheet" href="styles/style.css">
   <!-- Favicon generated with: https://www.favicon-generator.org -->
   <link rel="icon" type="image/png" href="img/icons/favicon-32x32.png">
 </head>
+
 <body>
   <h2>Paint 8x8 - Palette GameBoy</h2>
   <div class="board" id="board"></div>
   <h3>Previsualización</h3>
   <canvas id="preview" width="64" height="64"></canvas>
   <div class="palette" id="palette"></div>
+  <div class="format-container">
+    <label class="format-label">Formato:</label>
+    <div class="custom-dropdown" id="formatDropdown">
+      <div class="dropdown-selected" id="dropdownSelected">Binario (8 filas x 2 cols)</div>
+      <div class="dropdown-options" id="dropdownOptions">
+        <div class="dropdown-option" data-value="binary">Binario (8 filas x 2 cols)</div>
+        <div class="dropdown-option" data-value="hex">Hexadecimal (2 filas x 8 cols)</div>
+      </div>
+    </div>
+    <input type="hidden" id="formatSelect" value="binary">
+  </div>
+  
+  <div class="name-container">
+    <label class="format-label">Nombre del Array:</label>
+    <input type="text" id="spriteName" value="custom_sprite" class="name-input" maxlength="20">
+  </div>
   <div>
     <button id="exportBtn">Export C code</button>
     <button id="importBtn">Import C code</button>
@@ -26,4 +44,5 @@
     <p>© 2025 Percy Duarte Gálvez — GameBoy Sprite Painter</p>
   </footer>
 </body>
+
 </html>
