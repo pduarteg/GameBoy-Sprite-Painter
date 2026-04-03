@@ -133,6 +133,29 @@ footer p {
   font-size: 16px;
 }
 
+.name-container {
+  margin: 0 0 15px 0;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.name-input {
+  width: 230px;
+  background-color: white;
+  border: solid 2px #346856;
+  padding: 6px 10px;
+  font-family: monospace;
+  font-size: 14px;
+  font-weight: bold;
+  color: #346856;
+}
+
+.name-input:focus {
+  outline: none;
+  background-color: #E0F8D0;
+}
+
 .custom-dropdown {
   position: relative;
   width: 250px;

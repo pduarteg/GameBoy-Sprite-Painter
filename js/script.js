@@ -46,7 +46,8 @@ function toHex(b) { return "0x" + b.toString(16).padStart(2, "0").toUpperCase();
 
 function exportArray() {
   const format = document.getElementById("formatSelect").value;
-  let lines = ["unsigned char real_sprite[] = {"];
+  const name = document.getElementById("spriteName").value.trim() || "custom_sprite";
+  let lines = [`unsigned char ${name}[] = {`];
 
   if (format === "hex") {
     let hexValues = [];
@@ -84,6 +85,12 @@ function importArray() {
   const text = document.getElementById("out").value;
   const format = document.getElementById("formatSelect").value;
   let matches = [];
+
+  // Intentamos recuperar el nombre original del array
+  const nameMatch = text.match(/unsigned char\s+([a-zA-Z0-9_]+)\[\]/);
+  if (nameMatch && document.getElementById("spriteName")) {
+    document.getElementById("spriteName").value = nameMatch[1];
+  }
 
   if (format === "hex") {
     matches = [...text.matchAll(/0x([0-9a-fA-F]{2})\s*,\s*0x([0-9a-fA-F]{2})/g)];
@@ -192,3 +199,28 @@ document.querySelectorAll(".dropdown-option").forEach(option => {
 window.addEventListener("click", () => {
   dropdownOptions.classList.remove("show");
 });
+
+// --- Validación del Nombre de Variable ---
+const spriteNameInput = document.getElementById("spriteName");
+if (spriteNameInput) {
+  spriteNameInput.addEventListener("input", function() {
+    // 3. Reemplazar espacios por guiones bajos "_"
+    let val = this.value.replace(/ /g, "_");
+    
+    // Eliminar cualquier caracter que no sea letra, número o guión bajo (reglas de C)
+    val = val.replace(/[^a-zA-Z0-9_]/g, "");
+    
+    // 1. No iniciar con números (eliminamos todos los números al incio)
+    while (val.length > 0 && /^[0-9]/.test(val)) {
+      val = val.substring(1);
+    }
+    
+    // 2. El límite de 20 caracteres ya se aplica con el maxlength en HTML,
+    // pero lo aseguramos aquí por si pegan texto más largo.
+    if (val.length > 20) {
+      val = val.substring(0, 20);
+    }
+    
+    this.value = val;
+  });
+}
