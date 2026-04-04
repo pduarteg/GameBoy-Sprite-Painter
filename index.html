@@ -134,8 +134,11 @@
         <!-- LEFT: Tile Palette -->
         <aside class="tilemap-palette-panel panel-card" id="tilePalettePanel">
 
-          <h2 class="panel-title">🎨 Paleta de Tiles</h2>
-          <p class="hint">Slot base: 128 (GBDK BKG)</p>
+          <div class="panel-title-row" style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 class="panel-title" style="margin-bottom:0;">🎨 Paleta de Tiles</h2>
+            <span class="step-num" id="tileCountBadge" style="width:auto; padding:0 8px; border-radius:12px; font-size:10px;">0 / 128</span>
+          </div>
+          <p class="hint" style="margin-top:4px;">Slot base: 128 (GBDK BKG)</p>
 
           <div class="tile-palette-list" id="tilePaletteList">
             <!-- Tiles registrados se insertan aquí -->

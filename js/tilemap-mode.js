@@ -180,8 +180,22 @@
     if (tileRegistry.length === 0) {
       listEl.appendChild(emptyEl);
       emptyEl.style.display = "flex";
-      return;
     }
+
+    // Actualizar contador
+    const countBadge = document.getElementById("tileCountBadge");
+    if (countBadge) {
+      countBadge.textContent = `${tileRegistry.length} / 128`;
+      if (tileRegistry.length > 128) {
+        countBadge.style.background = "var(--game-over)";
+        countBadge.style.color = "#fff";
+      } else {
+        countBadge.style.background = "var(--border-normal)";
+        countBadge.style.color = "var(--text-muted)";
+      }
+    }
+
+    if (tileRegistry.length === 0) return;
 
     tileRegistry.forEach((tile, i) => {
       const item = document.createElement("div");
