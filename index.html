@@ -3,46 +3,271 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>GameBoy 8x8 Sprite Painter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GameBoy Sprite Painter</title>
+  <meta name="description" content="Herramienta para diseñar sprites y tilemaps para juegos de Game Boy. Exporta código C compatible con GBDK.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/style.css">
-  <!-- Favicon generated with: https://www.favicon-generator.org -->
   <link rel="icon" type="image/png" href="img/icons/favicon-32x32.png">
 </head>
 
 <body>
-  <h2>Paint 8x8 - Palette GameBoy</h2>
-  <div class="board" id="board"></div>
-  <h3>Previsualización</h3>
-  <canvas id="preview" width="64" height="64"></canvas>
-  <div class="palette" id="palette"></div>
-  <div class="format-container">
-    <label class="format-label">Formato:</label>
-    <div class="custom-dropdown" id="formatDropdown">
-      <div class="dropdown-selected" id="dropdownSelected">Binario (8 filas x 2 cols)</div>
-      <div class="dropdown-options" id="dropdownOptions">
-        <div class="dropdown-option" data-value="binary">Binario (8 filas x 2 cols)</div>
-        <div class="dropdown-option" data-value="hex">Hexadecimal (2 filas x 8 cols)</div>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-logo">
+      <span class="logo-gb">GB</span>
+      <div class="header-titles">
+        <h1 class="header-title">Sprite Painter</h1>
+        <p class="header-sub">GBDK-2020 Asset Tool</p>
       </div>
     </div>
-    <input type="hidden" id="formatSelect" value="binary">
-  </div>
-  
-  <div class="name-container">
-    <label class="format-label">Nombre del Array:</label>
-    <input type="text" id="spriteName" value="custom_sprite" class="name-input" maxlength="20">
-  </div>
-  <div>
-    <button id="exportBtn">Export C code</button>
-    <button id="importBtn">Import C code</button>
-    <button id="clearBtn">Clear paint area</button>
-    <button id="copyBtn">Copy code</button>
-  </div>
-  <textarea id="out" placeholder="The exported code appears here or paste one to import."></textarea>
+    <nav class="mode-tabs" role="tablist" aria-label="Modo de edición">
+      <button class="mode-tab active" id="tab-sprite" role="tab" aria-selected="true" aria-controls="panel-sprite">
+        🎮 Sprites
+      </button>
+      <button class="mode-tab" id="tab-tilemap" role="tab" aria-selected="false" aria-controls="panel-tilemap">
+        🗺️ Tile Map
+      </button>
+    </nav>
+  </header>
 
-  <script src="js/script.js"></script>
-  <footer>
-    <p>© 2025 Percy Duarte Gálvez — GameBoy Sprite Painter</p>
+  <main class="app-main">
+
+    <!-- ============================= -->
+    <!-- PANEL: SPRITE MODE            -->
+    <!-- ============================= -->
+    <section class="mode-panel active" id="panel-sprite" role="tabpanel" aria-labelledby="tab-sprite">
+
+      <div class="sprite-layout">
+
+        <!-- LEFT: Controls -->
+        <aside class="sprite-controls panel-card">
+          <h2 class="panel-title">⚙️ Configuración</h2>
+
+          <!-- Canvas Size -->
+          <div class="control-group">
+            <label class="control-label">Tamaño del sprite</label>
+            <div class="size-grid" id="sizePicker" role="radiogroup" aria-label="Tamaño del canvas">
+              <button class="size-btn active" data-w="8"  data-h="8"  id="size-8x8"   role="radio" aria-checked="true">8×8</button>
+              <button class="size-btn"        data-w="8"  data-h="16" id="size-8x16"  role="radio" aria-checked="false">8×16</button>
+              <button class="size-btn"        data-w="16" data-h="8"  id="size-16x8"  role="radio" aria-checked="false">16×8</button>
+              <button class="size-btn"        data-w="16" data-h="16" id="size-16x16" role="radio" aria-checked="false">16×16</button>
+            </div>
+          </div>
+
+          <!-- Format -->
+          <div class="control-group">
+            <label class="control-label" for="spriteFormat">Formato de salida</label>
+            <div class="custom-dropdown" id="spriteFormatDropdown">
+              <div class="dropdown-selected" id="spriteDropdownSelected">Hexadecimal</div>
+              <div class="dropdown-options" id="spriteDropdownOptions">
+                <div class="dropdown-option" data-value="hex">Hexadecimal</div>
+                <div class="dropdown-option" data-value="binary">Binario</div>
+              </div>
+            </div>
+            <input type="hidden" id="spriteFormat" value="hex">
+          </div>
+
+          <!-- Name -->
+          <div class="control-group">
+            <label class="control-label" for="spriteName">Nombre del array</label>
+            <input type="text" id="spriteName" value="custom_sprite" class="name-input" maxlength="20" autocomplete="off" spellcheck="false">
+          </div>
+
+          <!-- Palette -->
+          <div class="control-group">
+            <label class="control-label">Paleta GameBoy</label>
+            <div class="palette" id="spritePalette" role="radiogroup" aria-label="Colores de la paleta"></div>
+            <p class="hint">Teclas 0–3 para seleccionar</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="control-group">
+            <label class="control-label">Acciones</label>
+            <div class="btn-stack">
+              <button class="btn btn-primary" id="exportBtn">⬇ Exportar código C</button>
+              <button class="btn btn-secondary" id="importBtn">⬆ Importar código C</button>
+              <button class="btn btn-ghost" id="clearBtn">🗑 Borrar canvas</button>
+              <button class="btn btn-ghost" id="copyBtn">📋 Copiar al portapapeles</button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- CENTER: Canvas -->
+        <div class="sprite-canvas-area">
+          <div class="canvas-label">CANVAS</div>
+          <div class="board-wrapper">
+            <div class="board" id="spriteBoard"></div>
+          </div>
+          <div class="canvas-label" style="margin-top:20px;">PREVIEW</div>
+          <div class="preview-row">
+            <canvas id="spritePreview" width="64" height="64" title="Preview 1x"></canvas>
+            <canvas id="spritePreview2x" width="128" height="128" title="Preview 2x"></canvas>
+            <canvas id="spritePreview4x" width="256" height="256" title="Preview 4x"></canvas>
+          </div>
+          <div class="preview-labels">
+            <span>1x</span><span>2x</span><span>4x</span>
+          </div>
+        </div>
+
+        <!-- RIGHT: Output -->
+        <aside class="sprite-output panel-card">
+          <h2 class="panel-title">💾 Código C exportado</h2>
+          <textarea id="spriteOut" class="code-out" spellcheck="false"
+            placeholder="El código exportado aparece aquí.&#10;También puedes pegar código aquí para importarlo."></textarea>
+          <p class="hint">Formato compatible con GBDK-2020</p>
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- ============================= -->
+    <!-- PANEL: TILE MAP MODE          -->
+    <!-- ============================= -->
+    <section class="mode-panel" id="panel-tilemap" role="tabpanel" aria-labelledby="tab-tilemap">
+
+      <div class="tilemap-layout">
+
+        <!-- LEFT: Tile Palette -->
+        <aside class="tilemap-palette-panel panel-card" id="tilePalettePanel">
+
+          <h2 class="panel-title">🎨 Paleta de Tiles</h2>
+          <p class="hint">Slot base: 128 (GBDK BKG)</p>
+
+          <div class="tile-palette-list" id="tilePaletteList">
+            <!-- Tiles registrados se insertan aquí -->
+            <div class="empty-palette-msg" id="emptyPaletteMsg">
+              <span>Sin tiles aún.<br>Crea uno abajo 👇</span>
+            </div>
+          </div>
+
+          <div class="palette-actions">
+            <button class="btn btn-primary" id="newTileBtn">+ Nuevo Tile</button>
+            <button class="btn btn-secondary" id="importTilesBtn">⬆ Importar tiles.h</button>
+          </div>
+
+          <!-- GB Color Palette for tile editor -->
+          <div class="control-group" style="margin-top:16px;">
+            <label class="control-label">Paleta GameBoy</label>
+            <div class="palette" id="tilePalette" role="radiogroup" aria-label="Colores de la paleta"></div>
+          </div>
+
+          <!-- Tile Map Export -->
+          <div class="control-group" style="margin-top:16px;">
+            <label class="control-label">Nombre del mapa</label>
+            <input type="text" id="mapName" value="level_map" class="name-input" maxlength="20" autocomplete="off" spellcheck="false">
+          </div>
+
+          <div class="btn-stack" style="margin-top:8px;">
+            <button class="btn btn-primary" id="exportTilemapBtn">⬇ Exportar Todo</button>
+            <button class="btn btn-ghost"   id="clearMapBtn">🗑 Borrar mapa</button>
+          </div>
+
+        </aside>
+
+        <!-- CENTER: Map Canvas + Mini Editor -->
+        <div class="tilemap-center">
+
+          <!-- Mini Tile Editor (shown when creating/editing a tile) -->
+          <div class="mini-editor-card panel-card" id="miniEditorCard" style="display:none;">
+            <h3 class="panel-title">✏️ Editor de Tile</h3>
+            <div class="mini-editor-layout">
+              <div>
+                <div class="board mini-board" id="tileEditorBoard"></div>
+                <canvas id="tileEditorPreview" width="64" height="64" class="mini-preview"></canvas>
+              </div>
+              <div class="mini-editor-controls">
+                <div class="control-group">
+                  <label class="control-label" for="tileVarName">Nombre variable</label>
+                  <input type="text" id="tileVarName" value="my_tile" class="name-input" maxlength="20" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="control-group">
+                  <label class="control-label">Slot ID (auto)</label>
+                  <div class="slot-badge" id="tileSlotBadge">128</div>
+                </div>
+                <div class="btn-stack">
+                  <button class="btn btn-primary" id="saveTileBtn">✔ Guardar Tile</button>
+                  <button class="btn btn-ghost"   id="cancelTileBtn">✕ Cancelar</button>
+                  <button class="btn btn-ghost"   id="clearTileBtn">🗑 Limpiar</button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Map Canvas -->
+          <div class="panel-card map-canvas-card">
+            <div class="map-header">
+              <h3 class="panel-title">🗺️ Tile Map — 32×18</h3>
+              <div class="map-hint-row">
+                <span class="map-selection-badge" id="activeTileBadge">Sin tile seleccionado</span>
+                <label class="toggle-label">
+                  <input type="checkbox" id="showGridToggle" checked>
+                  Mostrar grid
+                </label>
+                <label class="toggle-label">
+                  <input type="checkbox" id="showCoordToggle">
+                  Coordenadas
+                </label>
+              </div>
+            </div>
+            <div class="map-canvas-wrapper" id="mapCanvasWrapper">
+              <canvas id="mapCanvas" width="512" height="288"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Export Output -->
+        <aside class="tilemap-output panel-card">
+          <h2 class="panel-title">💾 Código exportado</h2>
+
+          <div class="output-tabs" role="tablist">
+            <button class="out-tab active" id="outTabTiles" data-target="outTilesH" role="tab">tiles.h</button>
+            <button class="out-tab" id="outTabMain" data-target="outMainC" role="tab">main.c</button>
+          </div>
+
+          <textarea id="outTilesH" class="code-out out-panel active" spellcheck="false"
+            placeholder="Aquí aparecerá el contenido de tiles.h"></textarea>
+          <textarea id="outMainC" class="code-out out-panel" spellcheck="false"
+            placeholder="Aquí aparecerá el código para pegar en main.c"></textarea>
+
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="btn btn-ghost" id="copyTilesBtn">📋 Copiar tiles.h</button>
+            <button class="btn btn-ghost" id="copyMainBtn">📋 Copiar main.c</button>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>© 2025 Percy Duarte Gálvez — <strong>GameBoy Sprite Painter</strong> &nbsp;|&nbsp; Compatible con GBDK-2020</p>
   </footer>
+
+  <!-- Import dialog for tiles.h -->
+  <div class="modal-overlay" id="importTilesModal" style="display:none;">
+    <div class="modal-card">
+      <h3 class="panel-title">⬆ Importar tiles.h</h3>
+      <p class="hint">Pega el contenido de tu archivo tiles.h aquí:</p>
+      <textarea id="importTilesText" class="code-out" rows="12" spellcheck="false"
+        placeholder="Pega el contenido de tiles.h aquí..."></textarea>
+      <div class="btn-row" style="margin-top:12px;">
+        <button class="btn btn-primary"   id="confirmImportTiles">✔ Importar</button>
+        <button class="btn btn-ghost"     id="cancelImportTiles">✕ Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="js/export.js"></script>
+  <script src="js/painter.js"></script>
+  <script src="js/sprite-mode.js"></script>
+  <script src="js/tilemap-mode.js"></script>
+
 </body>
 
 </html>
