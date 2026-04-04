@@ -42,40 +42,75 @@ colors.forEach((c, i) => {
 });
 
 function toBin(b) { return "0b" + b.toString(2).padStart(8, "0"); }
+function toHex(b) { return "0x" + b.toString(16).padStart(2, "0").toUpperCase(); }
 
 function exportArray() {
-  let lines = ["unsigned char real_sprite[] = {"];
-  for (let y = 0; y < 8; y++) {
-    let low = 0, high = 0;
-    for (let x = 0; x < 8; x++) {
-      const val = grid[y][x];
-      const bit = 7 - x;
-      if (val & 1) low |= (1 << bit);
-      if (val & 2) high |= (1 << bit);
+  const format = document.getElementById("formatSelect").value;
+  const name = document.getElementById("spriteName").value.trim() || "custom_sprite";
+  let lines = [`unsigned char ${name}[] = {`];
+
+  if (format === "hex") {
+    let hexValues = [];
+    for (let y = 0; y < 8; y++) {
+      let low = 0, high = 0;
+      for (let x = 0; x < 8; x++) {
+        const val = grid[y][x];
+        const bit = 7 - x;
+        if (val & 1) low |= (1 << bit);
+        if (val & 2) high |= (1 << bit);
+      }
+      hexValues.push(toHex(low), toHex(high));
     }
-    //lines.push(`  // fila ${y + 1}: byte bajo, byte alto`);
-    lines.push(`  ${toBin(low)}, ${toBin(high)},`);
+    // Formato 2 filas de 8 columnas
+    lines.push(`  ${hexValues.slice(0, 8).join(", ")},`);
+    lines.push(`  ${hexValues.slice(8, 16).join(", ")}`);
+  } else {
+    for (let y = 0; y < 8; y++) {
+      let low = 0, high = 0;
+      for (let x = 0; x < 8; x++) {
+        const val = grid[y][x];
+        const bit = 7 - x;
+        if (val & 1) low |= (1 << bit);
+        if (val & 2) high |= (1 << bit);
+      }
+      lines.push(`  ${toBin(low)}, ${toBin(high)},`);
+    }
   }
+
   lines.push("};");
   document.getElementById("out").value = lines.join("\n");
 }
 
 function importArray() {
   const text = document.getElementById("out").value;
-  const matches = [...text.matchAll(/0b([01]{8})\s*,\s*0b([01]{8})/g)];
-  if (matches.length < 8) { 
-    alert("No se encontraron 8 filas válidas en el texto"); 
-    return; 
+  const format = document.getElementById("formatSelect").value;
+  let matches = [];
+
+  // Intentamos recuperar el nombre original del array
+  const nameMatch = text.match(/unsigned char\s+([a-zA-Z0-9_]+)\[\]/);
+  if (nameMatch && document.getElementById("spriteName")) {
+    document.getElementById("spriteName").value = nameMatch[1];
+  }
+
+  if (format === "hex") {
+    matches = [...text.matchAll(/0x([0-9a-fA-F]{2})\s*,\s*0x([0-9a-fA-F]{2})/g)];
+  } else {
+    matches = [...text.matchAll(/0b([01]{8})\s*,\s*0b([01]{8})/g)];
+  }
+
+  if (matches.length < 8) {
+    alert(`No se encontraron 8 filas válidas en el texto para el formato ${format}`);
+    return;
   }
 
   matches.slice(0, 8).forEach((m, y) => {
-    const low = parseInt(m[1], 2);
-    const high = parseInt(m[2], 2);
+    const low = parseInt(m[1], format === "hex" ? 16 : 2);
+    const high = parseInt(m[2], format === "hex" ? 16 : 2);
     for (let x = 0; x < 8; x++) {
       const bit = 7 - x;
       const lowBit = (low >> bit) & 1;
       const highBit = (high >> bit) & 1;
-      const val = (highBit << 1) | lowBit; 
+      const val = (highBit << 1) | lowBit;
       grid[y][x] = val;
     }
   });
@@ -137,3 +172,55 @@ function render() {
 
 
 render();
+
+// --- Lógica del Dropdown Personalizado ---
+const formatDropdown = document.getElementById("formatDropdown");
+const dropdownOptions = document.getElementById("dropdownOptions");
+const dropdownSelected = document.getElementById("dropdownSelected");
+const formatInput = document.getElementById("formatSelect");
+
+formatDropdown.addEventListener("click", (e) => {
+  e.stopPropagation();
+  dropdownOptions.classList.toggle("show");
+});
+
+document.querySelectorAll(".dropdown-option").forEach(option => {
+  option.addEventListener("click", (e) => {
+    e.stopPropagation();
+    const value = e.target.getAttribute("data-value");
+    const text = e.target.textContent;
+
+    formatInput.value = value;
+    dropdownSelected.textContent = text;
+    dropdownOptions.classList.remove("show");
+  });
+});
+
+window.addEventListener("click", () => {
+  dropdownOptions.classList.remove("show");
+});
+
+// --- Validación del Nombre de Variable ---
+const spriteNameInput = document.getElementById("spriteName");
+if (spriteNameInput) {
+  spriteNameInput.addEventListener("input", function() {
+    // 3. Reemplazar espacios por guiones bajos "_"
+    let val = this.value.replace(/ /g, "_");
+    
+    // Eliminar cualquier caracter que no sea letra, número o guión bajo (reglas de C)
+    val = val.replace(/[^a-zA-Z0-9_]/g, "");
+    
+    // 1. No iniciar con números (eliminamos todos los números al incio)
+    while (val.length > 0 && /^[0-9]/.test(val)) {
+      val = val.substring(1);
+    }
+    
+    // 2. El límite de 20 caracteres ya se aplica con el maxlength en HTML,
+    // pero lo aseguramos aquí por si pegan texto más largo.
+    if (val.length > 20) {
+      val = val.substring(0, 20);
+    }
+    
+    this.value = val;
+  });
+}
