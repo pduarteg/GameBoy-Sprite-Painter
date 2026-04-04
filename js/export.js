@@ -279,10 +279,46 @@ function parseTilesH(text) {
   return result;
 }
 
+/**
+ * Parsea el bloque de código de main.c exportado por la herramienta.
+ * Extrae el mapeo slot→nombre (de los set_bkg_data) y el array del mapa.
+ *
+ * @param {string} text — contenido del textarea "main.c" exportado
+ * @returns {{
+ *   mapName: string,
+ *   mapData: number[],
+ *   slotMap: Object.<number, string>
+ * } | null}
+ */
+function parseMainC(text) {
+  // 1. Extraer todas las llamadas set_bkg_data(slot, count, varName)
+  //    Soporta el formato exacto que genera la herramienta.
+  const slotMap = {}; // { 128: "sky_up", 129: "sky_middle", ... }
+  const bkgRe = /set_bkg_data\s*\(\s*(\d+)\s*,\s*\d+\s*,\s*([a-zA-Z0-9_]+)\s*\)/g;
+  for (const m of text.matchAll(bkgRe)) {
+    slotMap[parseInt(m[1])] = m[2];
+  }
+
+  // 2. Extraer el array del mapa: unsigned char name[] = { ... };
+  //    El array ocupa múltiples líneas, por eso usamos [\s\S]+? (non-greedy + dotAll).
+  const mapRe = /unsigned\s+char\s+([a-zA-Z0-9_]+)\s*\[\s*\]\s*=\s*\{([\s\S]+?)\};/;
+  const mapMatch = text.match(mapRe);
+  if (!mapMatch) return null;
+
+  const mapName = mapMatch[1];
+  // Extraer todos los números enteros del cuerpo del array
+  const mapData = (mapMatch[2].match(/\d+/g) || []).map(Number);
+
+  if (mapData.length === 0) return null;
+
+  return { mapName, mapData, slotMap };
+}
+
 // Exportar para uso en otros módulos (sin módulos ES, acceso global)
 window.GBExport = {
   toHex, toBin, gridToGBBytes, gbBytesToGrid,
   exportSprite, importSprite,
-  generateTilesH, generateMainC, parseTilesH,
+  generateTilesH, generateMainC,
+  parseTilesH, parseMainC,
   GB_COLORS
 };

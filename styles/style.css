@@ -656,7 +656,7 @@ body {
 /* =========================================================
    MAP CANVAS
    ========================================================= */
-.map-canvas-card { }
+
 
 .map-header {
   display: flex;
@@ -828,6 +828,90 @@ body {
 
 .tile-palette-item.active {
   animation: pulse-border 2s infinite;
+}
+
+/* =========================================================
+   IMPORT MODAL — TWO-STEP
+   ========================================================= */
+.import-steps {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 18px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid var(--border-dim);
+}
+
+.import-step {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  padding: 6px 14px;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--border-dim);
+  background: var(--bg-elevated);
+  transition: all 0.2s;
+}
+
+.import-step.active {
+  border-color: var(--accent-bright);
+  background: rgba(52,104,86,0.25);
+  box-shadow: 0 0 8px rgba(136,192,112,0.15);
+}
+
+.step-num {
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--border-normal);
+  color: var(--text-muted);
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.2s;
+}
+
+.import-step.active .step-num {
+  background: var(--accent-bright);
+  color: var(--gb-3);
+}
+
+.step-label {
+  font-family: var(--font-mono);
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--text-muted);
+  transition: color 0.2s;
+}
+
+.import-step.active .step-label {
+  color: var(--text-primary);
+}
+
+.import-step-arrow {
+  font-size: 16px;
+  color: var(--text-muted);
+}
+
+.import-step2-hint {
+  margin-top: 8px;
+  padding: 8px 10px;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-dim);
+  background: var(--bg-base);
+}
+
+.modal-card code {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--accent-bright);
+  background: rgba(136,192,112,0.1);
+  padding: 1px 5px;
+  border-radius: 3px;
 }
 
 /* =========================================================

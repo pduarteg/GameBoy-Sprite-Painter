@@ -424,50 +424,144 @@
   });
 
   // ====================================================
-  // IMPORTAR tiles.h
+  // IMPORTAR MAPA COMPLETO (2 pasos)
   // ====================================================
-  const importModal    = document.getElementById("importTilesModal");
+  const importModal = document.getElementById("importTilesModal");
 
-  document.getElementById("importTilesBtn").addEventListener("click", () => {
-    importModal.style.display = "flex";
-    document.getElementById("importTilesText").value = "";
-  });
+  /** Helpers de navegación entre pasos */
+  function importGoToStep(step) {
+    const p1 = document.getElementById("importStepPanel1");
+    const p2 = document.getElementById("importStepPanel2");
+    const i1 = document.getElementById("importStep1Indicator");
+    const i2 = document.getElementById("importStep2Indicator");
+    if (step === 1) {
+      p1.style.display = "block";  p2.style.display = "none";
+      i1.classList.add("active");  i2.classList.remove("active");
+    } else {
+      p1.style.display = "none";   p2.style.display = "block";
+      i1.classList.remove("active"); i2.classList.add("active");
+    }
+  }
 
-  document.getElementById("cancelImportTiles").addEventListener("click", () => {
+  function closeImportModal() {
     importModal.style.display = "none";
+    importGoToStep(1);
+    document.getElementById("importTilesText").value  = "";
+    document.getElementById("importMainCText").value  = "";
+  }
+
+  /** Abrir modal */
+  document.getElementById("importTilesBtn").addEventListener("click", () => {
+    importGoToStep(1);
+    importModal.style.display = "flex";
   });
 
-  document.getElementById("confirmImportTiles").addEventListener("click", () => {
-    const text = document.getElementById("importTilesText").value;
-    if (!text.trim()) { alert("Pega el contenido del archivo tiles.h."); return; }
+  /** Cancelar (paso 1 y 2) */
+  document.getElementById("cancelImportTiles").addEventListener("click",  closeImportModal);
+  document.getElementById("cancelImportTiles2").addEventListener("click", closeImportModal);
 
-    const parsed = GBExport.parseTilesH(text);
-    if (parsed.length === 0) {
-      alert("No se encontraron tiles válidos en el texto.");
+  /** Siguiente → pasar al paso 2 */
+  document.getElementById("importStep1Next").addEventListener("click", () => {
+    const text = document.getElementById("importTilesText").value;
+    if (!text.trim()) {
+      alert("Pega el contenido de tiles.h antes de continuar.");
+      return;
+    }
+    importGoToStep(2);
+  });
+
+  /** ← Atrás → volver al paso 1 */
+  document.getElementById("importStep2Back").addEventListener("click", () => {
+    importGoToStep(1);
+  });
+
+  /** ✔ Importar — procesar ambos pasos */
+  document.getElementById("confirmImportTiles").addEventListener("click", () => {
+    const tilesText = document.getElementById("importTilesText").value;
+    const mainCText = document.getElementById("importMainCText").value;
+
+    // ── Paso 1: Importar tiles.h ──────────────────────────────
+    if (!tilesText.trim()) {
+      alert("El campo de tiles.h está vacío.");
+      importGoToStep(1);
       return;
     }
 
-    // Merge: agregar los tiles que no existan aún (por nombre)
-    let added = 0;
-    parsed.forEach(t => {
+    const parsedTiles = GBExport.parseTilesH(tilesText);
+    if (parsedTiles.length === 0) {
+      alert("No se encontraron tiles válidos en el texto de tiles.h.");
+      importGoToStep(1);
+      return;
+    }
+
+    // Merge tiles: agregar los que no existen aún (por nombre)
+    let addedTiles = 0;
+    parsedTiles.forEach(t => {
       const exists = tileRegistry.find(r => r.name === t.name);
-      if (!exists) {
-        tileRegistry.push(t);
-        added++;
+      if (!exists) { tileRegistry.push(t); addedTiles++; }
+      else {
+        // Actualizar slot si el tiles.h tiene una asignación explícita
+        if (t.slotId !== undefined) exists.slotId = t.slotId;
       }
     });
 
-    alert(`✅ ${added} tile(s) importados. ${parsed.length - added} ya existían.`);
+    // ── Paso 2 (opcional): Importar main.c ───────────────────
+    let mapMsg = "";
+    if (mainCText.trim()) {
+      const parsedMap = GBExport.parseMainC(mainCText);
+
+      if (!parsedMap) {
+        alert("No se pudo leer el bloque de main.c. Verifica que contenga el array del mapa.");
+        return;
+      }
+
+      const { mapName, mapData, slotMap } = parsedMap;
+
+      // Actualizar el nombre del mapa en el campo UI
+      const mapNameInput = document.getElementById("mapName");
+      if (mapNameInput) mapNameInput.value = mapName;
+
+      // Los set_bkg_data del main.c pueden tener slots diferentes a los
+      // guardados en tiles.h (p.ej. si el usuario los movió). Hacemos
+      // una segunda pasada para asegurarnos de que los slots sean correctos.
+      Object.entries(slotMap).forEach(([slotStr, tileName]) => {
+        const slotId = parseInt(slotStr);
+        const tile   = tileRegistry.find(r => r.name === tileName);
+        if (tile && tile.slotId !== slotId) tile.slotId = slotId;
+      });
+
+      // Rellenar el tileMap con los valores del array
+      const needed = MAP_COLS * MAP_ROWS;
+      if (mapData.length >= needed) {
+        tileMap = mapData.slice(0, needed);
+        mapMsg = ` y mapa "${mapName}" (${needed} celdas) reconstruido`;
+      } else if (mapData.length > 0) {
+        // Array más corto de lo esperado: rellenar el resto con -1
+        tileMap = [...mapData, ...Array(needed - mapData.length).fill(-1)];
+        mapMsg = ` y mapa "${mapName}" reconstruido (datos parciales: ${mapData.length}/${needed})`;
+      } else {
+        mapMsg = " (el array del mapa estaba vacío)";
+      }
+    }
+
+    // Si llega algún tile con slotId que no existe en el registro,
+    // el mapa podría mostrar celdas "vacías" — está bien, es el comportamiento esperado.
+
+    if (activeTileIndex >= tileRegistry.length) activeTileIndex = tileRegistry.length - 1;
+
     renderTilePalette();
     updateActiveBadge();
     renderMap();
-    importModal.style.display = "none";
+
+    alert(`✅ ${addedTiles} tile(s) importados${mapMsg}.`);
+    closeImportModal();
   });
 
-  // Cerrar modal al hacer clic fuera
+  /** Cerrar modal al hacer clic fuera */
   importModal.addEventListener("click", e => {
-    if (e.target === importModal) importModal.style.display = "none";
+    if (e.target === importModal) closeImportModal();
   });
+
 
   // ====================================================
   // MODE TAB SWITCHING (tabs del header)

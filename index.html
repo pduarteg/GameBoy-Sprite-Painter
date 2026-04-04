@@ -249,17 +249,58 @@
     <p>© 2025 Percy Duarte Gálvez — <strong>GameBoy Sprite Painter</strong> &nbsp;|&nbsp; Compatible con GBDK-2020</p>
   </footer>
 
-  <!-- Import dialog for tiles.h -->
+  <!-- Import dialog — two-step: tiles.h + main.c -->
   <div class="modal-overlay" id="importTilesModal" style="display:none;">
-    <div class="modal-card">
-      <h3 class="panel-title">⬆ Importar tiles.h</h3>
-      <p class="hint">Pega el contenido de tu archivo tiles.h aquí:</p>
-      <textarea id="importTilesText" class="code-out" rows="12" spellcheck="false"
-        placeholder="Pega el contenido de tiles.h aquí..."></textarea>
-      <div class="btn-row" style="margin-top:12px;">
-        <button class="btn btn-primary"   id="confirmImportTiles">✔ Importar</button>
-        <button class="btn btn-ghost"     id="cancelImportTiles">✕ Cancelar</button>
+    <div class="modal-card" style="max-width:640px;">
+      <h3 class="panel-title">📂 Importar Mapa Completo</h3>
+
+      <!-- Step indicators -->
+      <div class="import-steps">
+        <div class="import-step active" id="importStep1Indicator">
+          <span class="step-num">1</span>
+          <span class="step-label">tiles.h</span>
+        </div>
+        <div class="import-step-arrow">→</div>
+        <div class="import-step" id="importStep2Indicator">
+          <span class="step-num">2</span>
+          <span class="step-label">main.c</span>
+        </div>
       </div>
+
+      <!-- STEP 1: tiles.h -->
+      <div id="importStepPanel1">
+        <p class="hint" style="margin-bottom:8px;">
+          Pega el contenido completo de tu archivo <strong>tiles.h</strong>:
+        </p>
+        <textarea id="importTilesText" class="code-out" rows="10" spellcheck="false"
+          placeholder="Pega aquí el contenido de tiles.h..."></textarea>
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn btn-primary"  id="importStep1Next">Siguiente →</button>
+          <button class="btn btn-ghost"    id="cancelImportTiles">✕ Cancelar</button>
+        </div>
+      </div>
+
+      <!-- STEP 2: main.c block -->
+      <div id="importStepPanel2" style="display:none;">
+        <p class="hint" style="margin-bottom:8px;">
+          Ahora pega el bloque de <strong>main.c</strong> exportado
+          (los <code>set_bkg_data</code> + el array del mapa):
+        </p>
+        <textarea id="importMainCText" class="code-out" rows="10" spellcheck="false"
+          placeholder="Pega aquí el bloque de main.c (set_bkg_data + unsigned char mapa[])..."></textarea>
+        <div class="import-step2-hint">
+          <span class="hint">
+            💡 Si solo quieres importar los tiles sin reconstruir el mapa,
+            deja este campo <em>vacío</em> y pulsa Importar.
+          </span>
+        </div>
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn btn-primary"   id="confirmImportTiles">✔ Importar</button>
+          <button class="btn btn-secondary" id="importStep2Back">← Atrás</button>
+          <button class="btn btn-ghost"     id="cancelImportTiles2">✕ Cancelar</button>
+        </div>
+      </div>
+
     </div>
   </div>
 
