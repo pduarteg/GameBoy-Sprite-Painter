@@ -90,12 +90,19 @@
 
     // Coordenadas
     if (showCoord) {
-      mapCtx.fillStyle  = "rgba(136,192,112,0.7)";
-      mapCtx.font       = "5px monospace";
-      mapCtx.textAlign  = "left";
+      mapCtx.font         = "10px monospace";
+      mapCtx.textAlign    = "center";
+      mapCtx.textBaseline = "middle";
       for (let row = 0; row < MAP_ROWS; row++) {
         for (let col = 0; col < MAP_COLS; col++) {
-          mapCtx.fillText(`${col},${row}`, col * CELL_W + 1, row * CELL_H + 7);
+          const x = col * CELL_W + CELL_W / 2;
+          const y = row * CELL_H + CELL_H / 2;
+          // Sombra para contraste
+          mapCtx.fillStyle = "rgba(8,24,32,0.7)";
+          mapCtx.fillText(`${col},${row}`, x + 1, y + 1);
+          // Texto
+          mapCtx.fillStyle = "rgba(136,192,112,1)";
+          mapCtx.fillText(`${col},${row}`, x, y);
         }
       }
     }
