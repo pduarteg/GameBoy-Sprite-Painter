@@ -30,6 +30,31 @@
   let editingIndex = -1;
 
   // ====================================================
+  // AUTOSAVE LOGIC
+  // ====================================================
+  function saveTilemapState() {
+    const state = {
+      tileRegistry,
+      tileMap,
+      mapName: document.getElementById("mapName").value
+    };
+    localStorage.setItem("gb_painter_tilemap_state", JSON.stringify(state));
+  }
+
+  function loadTilemapState() {
+    const saved = localStorage.getItem("gb_painter_tilemap_state");
+    if (!saved) return;
+    try {
+      const state = JSON.parse(saved);
+      tileRegistry = state.tileRegistry || [];
+      tileMap      = state.tileMap || Array(MAP_COLS * MAP_ROWS).fill(-1);
+      document.getElementById("mapName").value = state.mapName || "level_map";
+    } catch (e) {
+      console.error("Error loading tilemap state", e);
+    }
+  }
+
+  // ====================================================
   // MAP CANVAS
   // ====================================================
   const mapCanvas   = document.getElementById("mapCanvas");
@@ -139,6 +164,7 @@
     if (col < 0 || col >= MAP_COLS || row < 0 || row >= MAP_ROWS) return;
     tileMap[row * MAP_COLS + col] = tileRegistry[activeTileIndex].slotId;
     renderMap();
+    saveTilemapState();
   }
 
   mapCanvas.addEventListener("mousedown", e => {
@@ -151,6 +177,7 @@
       if (col >= 0 && col < MAP_COLS && row >= 0 && row < MAP_ROWS) {
         tileMap[row * MAP_COLS + col] = -1;
         renderMap();
+        saveTilemapState();
       }
     }
   });
@@ -167,6 +194,7 @@
     if (confirm("¿Borrar todo el mapa?")) {
       tileMap = Array(MAP_COLS * MAP_ROWS).fill(-1);
       renderMap();
+      localStorage.removeItem("gb_painter_tilemap_state");
     }
   });
 
@@ -244,6 +272,7 @@
           renderTilePalette();
           updateActiveBadge();
           renderMap();
+          saveTilemapState();
         }
       };
 
@@ -366,6 +395,7 @@
     renderTilePalette();
     updateActiveBadge();
     renderMap();
+    saveTilemapState();
     miniEditorCard.style.display = "none";
     editingIndex = -1;
   });
@@ -385,6 +415,7 @@
     while (val.length > 0 && /^[0-9]/.test(val)) val = val.substring(1);
     if (val.length > 20) val = val.substring(0, 20);
     this.value = val;
+    saveTilemapState();
   });
 
   // ====================================================
@@ -605,6 +636,9 @@
     document.getElementById("tab-sprite").setAttribute("aria-selected", "false");
     renderMap();
   });
+
+  // Cargar estado
+  loadTilemapState();
 
   // Renderizado inicial
   renderTilePalette();

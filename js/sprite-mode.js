@@ -31,6 +31,44 @@
   resizePreviews(8, 8);
   const editor = new PixelEditor(boardEl, [preview1, preview2, preview4], 8, 8, 36);
 
+  // === AUTOSAVE LOGIC ===
+  function saveSpriteState() {
+    const state = {
+      spriteW,
+      spriteH,
+      name: nameInput.value,
+      grid: editor.grid
+    };
+    localStorage.setItem("gb_painter_sprite_state", JSON.stringify(state));
+  }
+
+  function loadSpriteState() {
+    const saved = localStorage.getItem("gb_painter_sprite_state");
+    if (!saved) return;
+    try {
+      const state = JSON.parse(saved);
+      spriteW = state.spriteW || 8;
+      spriteH = state.spriteH || 8;
+      nameInput.value = state.name || "custom_sprite";
+      
+      // Actualizar UI del selector de tamaño
+      document.querySelectorAll(".size-btn").forEach(b => {
+        const active = parseInt(b.dataset.w) === spriteW && parseInt(b.dataset.h) === spriteH;
+        b.classList.toggle("active", active);
+        b.setAttribute("aria-checked", active ? "true" : "false");
+      });
+
+      const cellSize = getCellSize(spriteW, spriteH);
+      resizePreviews(spriteW, spriteH);
+      editor.resize(spriteW, spriteH, cellSize);
+      editor.loadGrid(state.grid);
+    } catch (e) {
+      console.error("Error loading sprite state", e);
+    }
+  }
+
+  editor.onChange = () => saveSpriteState();
+
   // === PALETA DE COLORES ===
   const paletteEl = document.getElementById("spritePalette");
   GBExport.GB_COLORS.forEach((c, i) => {
@@ -110,6 +148,7 @@
     while (val.length > 0 && /^[0-9]/.test(val)) val = val.substring(1);
     if (val.length > 20) val = val.substring(0, 20);
     this.value = val;
+    saveSpriteState();
   });
 
   // === EXPORTAR ===
@@ -140,6 +179,7 @@
   // === BORRAR ===
   document.getElementById("clearBtn").addEventListener("click", () => {
     editor.clear();
+    localStorage.removeItem("gb_painter_sprite_state");
   });
 
   // === COPIAR ===
@@ -153,5 +193,8 @@
       .then(() => alert("✅ Código copiado al portapapeles."))
       .catch(() => alert("❌ No se pudo copiar automáticamente."));
   });
+
+  // Cargar estado inicial
+  loadSpriteState();
 
 })();
