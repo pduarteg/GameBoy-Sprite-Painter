@@ -443,6 +443,37 @@
     switchOutputTab("outTilesH");
   });
 
+  // Exportar mapa como PNG (Escala 1x)
+  document.getElementById("exportImageMapBtn").addEventListener("click", () => {
+    const mapName = document.getElementById("mapName").value.trim() || "level_map";
+    
+    // Crear un canvas temporal de tamaño 1x (256x144)
+    const tempCanvas = document.createElement("canvas");
+    tempCanvas.width = MAP_COLS * 8;
+    tempCanvas.height = MAP_ROWS * 8;
+    const tempCtx = tempCanvas.getContext("2d");
+
+    // Rellenar fondo
+    tempCtx.fillStyle = GBExport.GB_COLORS[0];
+    tempCtx.fillRect(0, 0, tempCanvas.width, tempCanvas.height);
+
+    // Dibujar tiles
+    for (let row = 0; row < MAP_ROWS; row++) {
+      for (let col = 0; col < MAP_COLS; col++) {
+        const slotId = tileMap[row * MAP_COLS + col];
+        const tile = tileRegistry.find(t => t.slotId === slotId);
+        if (tile) {
+          drawTileOnCanvas(tempCtx, tile.grid, col * 8, row * 8, 8, 8);
+        }
+      }
+    }
+
+    const link = document.createElement("a");
+    link.download = mapName + ".png";
+    link.href = tempCanvas.toDataURL("image/png");
+    link.click();
+  });
+
   // ====================================================
   // OUTPUT TABS
   // ====================================================

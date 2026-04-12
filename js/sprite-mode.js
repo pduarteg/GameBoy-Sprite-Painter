@@ -159,6 +159,15 @@
     document.getElementById("spriteOut").value = code;
   });
 
+  // === EXPORTAR COMO PNG ===
+  document.getElementById("exportImageBtn").addEventListener("click", () => {
+    const name = nameInput.value.trim() || "custom_sprite";
+    const link = document.createElement("a");
+    link.download = name + ".png";
+    link.href = preview1.toDataURL("image/png");
+    link.click();
+  });
+
   // === IMPORTAR ===
   document.getElementById("importBtn").addEventListener("click", () => {
     const text   = document.getElementById("spriteOut").value;
