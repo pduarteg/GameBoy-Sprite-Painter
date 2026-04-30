@@ -337,6 +337,42 @@ body {
   text-align: center;
 }
 
+/* Slots Preview Grid */
+.slots-preview-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 64px);
+  grid-template-rows: repeat(2, 64px);
+  gap: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-accent);
+  padding: 16px;
+  border-radius: var(--radius-lg);
+  box-shadow: inset 0 0 20px rgba(0,0,0,0.3);
+  margin-top: 8px;
+}
+
+.slot-preview-canvas {
+  width: 64px;
+  height: 64px;
+  image-rendering: pixelated;
+  border: 1px solid var(--border-dim);
+  background: var(--gb-3);
+  border-radius: 4px;
+  transition: all 0.2s;
+  cursor: pointer;
+}
+
+.slot-preview-canvas:hover {
+  border-color: var(--accent-primary);
+  transform: scale(1.05);
+}
+
+.slot-preview-canvas.active {
+  border-color: var(--accent-bright);
+  box-shadow: 0 0 10px var(--accent-glow);
+  outline: 1px solid var(--accent-bright);
+}
+
 #spritePreview, #spritePreview2x, #spritePreview4x {
   image-rendering: pixelated;
   border: 1px solid var(--border-accent);

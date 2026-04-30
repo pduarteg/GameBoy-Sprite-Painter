@@ -18,20 +18,57 @@
   const preview1 = document.getElementById("spritePreview");
   const preview2 = document.getElementById("spritePreview2x");
   const preview4 = document.getElementById("spritePreview4x");
+  const globalCanvases = Array.from(document.querySelectorAll(".slot-preview-canvas"));
 
   // Ajustar tamaños de los previews según el sprite
   function resizePreviews(w, h) {
     preview1.width  = w;       preview1.height  = h;
     preview2.width  = w * 2;   preview2.height  = h * 2;
     preview4.width  = w * 4;   preview4.height  = h * 4;
+    
+    // El canvas global del slot actual también debe medir 4x
+    if (globalCanvases[currentSlot]) {
+      globalCanvases[currentSlot].width = w * 4;
+      globalCanvases[currentSlot].height = h * 4;
+    }
+  }
+
+  // Auxiliar para renderizar un grid estático en un canvas
+  function renderStaticGrid(grid, canvas, w, h, scale) {
+    const ctx = canvas.getContext("2d");
+    canvas.width = w * scale;
+    canvas.height = h * scale;
+    ctx.clearRect(0, 0, canvas.width, canvas.height);
+    for (let y = 0; y < h; y++) {
+      for (let x = 0; x < w; x++) {
+        ctx.fillStyle = GBExport.GB_COLORS[grid[y][x]];
+        ctx.fillRect(x * scale, y * scale, scale, scale);
+      }
+    }
+  }
+
+  function updateAllGlobalPreviews() {
+    const allSlots = JSON.parse(localStorage.getItem("gb_painter_slots") || "[]");
+    globalCanvases.forEach((canvas, i) => {
+      const state = allSlots[i];
+      if (state && state.grid) {
+        renderStaticGrid(state.grid, canvas, state.spriteW || 8, state.spriteH || 8, 4);
+      } else {
+        // Slot vacío
+        canvas.width = 32; canvas.height = 32;
+        const ctx = canvas.getContext("2d");
+        ctx.fillStyle = GBExport.GB_COLORS[0];
+        ctx.fillRect(0, 0, 32, 32);
+      }
+      canvas.classList.toggle("active", i === currentSlot);
+    });
   }
 
   // Inicializar el editor de sprite
+  let currentSlot = 0;
   const boardEl = document.getElementById("spriteBoard");
   resizePreviews(8, 8);
   const editor = new PixelEditor(boardEl, [preview1, preview2, preview4], 8, 8, 36);
-
-  let currentSlot = 0;
 
   // === AUTOSAVE LOGIC ===
   function saveSpriteState() {
@@ -75,6 +112,11 @@
       b.setAttribute("aria-checked", active ? "true" : "false");
     });
 
+    // Actualizar previews globales
+    globalCanvases.forEach((c, i) => {
+      c.classList.toggle("active", i === currentSlot);
+    });
+
     if (!state) {
       // Slot nuevo/vacío
       spriteW = 8;
@@ -83,6 +125,7 @@
       
       const cellSize = getCellSize(spriteW, spriteH);
       resizePreviews(spriteW, spriteH);
+      editor.previews = [preview1, preview2, preview4, globalCanvases[currentSlot]];
       editor.resize(spriteW, spriteH, cellSize);
       editor.clear();
 
@@ -110,6 +153,7 @@
 
     const cellSize = getCellSize(spriteW, spriteH);
     resizePreviews(spriteW, spriteH);
+    editor.previews = [preview1, preview2, preview4, globalCanvases[currentSlot]];
     editor.resize(spriteW, spriteH, cellSize);
     editor.loadGrid(state.grid);
   }
@@ -118,6 +162,7 @@
     const savedSlot = localStorage.getItem("gb_painter_current_slot");
     const slotToLoad = savedSlot !== null ? parseInt(savedSlot) : 0;
     loadSlot(slotToLoad);
+    updateAllGlobalPreviews();
   }
 
   editor.onChange = () => saveSpriteState();
@@ -132,7 +177,14 @@
     loadSlot(slotIdx);
   });
 
-  // === PALETA DE COLORES ===
+  // Permitir cambiar de slot haciendo click en la vista global
+  globalCanvases.forEach(canvas => {
+    canvas.onclick = () => {
+      const slotIdx = parseInt(canvas.dataset.slot);
+      if (slotIdx === currentSlot) return;
+      loadSlot(slotIdx);
+    };
+  });
   const paletteEl = document.getElementById("spritePalette");
   GBExport.GB_COLORS.forEach((c, i) => {
     const sw = document.createElement("div");
