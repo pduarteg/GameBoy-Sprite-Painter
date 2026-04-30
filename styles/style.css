@@ -238,6 +238,39 @@ body {
   box-shadow: 0 0 8px rgba(136,192,112,0.2);
 }
 
+/* Slots Picker */
+.slots-grid {
+  display: grid;
+  grid-template-columns: repeat(5, 1fr);
+  gap: 4px;
+}
+
+.slot-btn {
+  font-family: var(--font-mono);
+  font-size: 11px;
+  font-weight: 700;
+  padding: 6px 0;
+  border-radius: var(--radius-sm);
+  border: 1px solid var(--border-normal);
+  background: var(--bg-elevated);
+  color: var(--text-muted);
+  cursor: pointer;
+  transition: all 0.15s ease;
+  text-align: center;
+}
+
+.slot-btn:hover {
+  border-color: var(--accent-primary);
+  color: var(--text-secondary);
+}
+
+.slot-btn.active {
+  background: var(--accent-primary);
+  border-color: var(--accent-bright);
+  color: var(--text-primary);
+  box-shadow: 0 0 8px rgba(136,192,112,0.2);
+}
+
 /* Canvas Area */
 .sprite-canvas-area {
   display: flex;

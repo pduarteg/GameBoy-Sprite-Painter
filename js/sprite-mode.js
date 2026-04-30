@@ -31,43 +31,106 @@
   resizePreviews(8, 8);
   const editor = new PixelEditor(boardEl, [preview1, preview2, preview4], 8, 8, 36);
 
+  let currentSlot = 0;
+
   // === AUTOSAVE LOGIC ===
   function saveSpriteState() {
+    // Intentar recuperar slots existentes o migrar el anterior
+    let allSlots = JSON.parse(localStorage.getItem("gb_painter_slots") || "[]");
+    
+    // Si no hay slots pero sí el estado antiguo, migrarlo al slot 0
+    const legacy = localStorage.getItem("gb_painter_sprite_state");
+    if (allSlots.length === 0 && legacy) {
+      allSlots[0] = JSON.parse(legacy);
+    }
+
     const state = {
       spriteW,
       spriteH,
       name: nameInput.value,
       grid: editor.grid
     };
-    localStorage.setItem("gb_painter_sprite_state", JSON.stringify(state));
+    
+    allSlots[currentSlot] = state;
+    localStorage.setItem("gb_painter_slots", JSON.stringify(allSlots));
+    localStorage.setItem("gb_painter_current_slot", currentSlot);
   }
 
-  function loadSpriteState() {
-    const saved = localStorage.getItem("gb_painter_sprite_state");
-    if (!saved) return;
-    try {
-      const state = JSON.parse(saved);
-      spriteW = state.spriteW || 8;
-      spriteH = state.spriteH || 8;
-      nameInput.value = state.name || "custom_sprite";
+  function loadSlot(slotIndex) {
+    currentSlot = slotIndex;
+    let allSlots = JSON.parse(localStorage.getItem("gb_painter_slots") || "[]");
+    
+    // Migración inicial si es necesario
+    const legacy = localStorage.getItem("gb_painter_sprite_state");
+    if (allSlots.length === 0 && legacy) {
+      allSlots[0] = JSON.parse(legacy);
+    }
+
+    const state = allSlots[currentSlot];
+
+    // Actualizar UI de slots
+    document.querySelectorAll(".slot-btn").forEach(b => {
+      const active = parseInt(b.dataset.slot) === currentSlot;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-checked", active ? "true" : "false");
+    });
+
+    if (!state) {
+      // Slot nuevo/vacío
+      spriteW = 8;
+      spriteH = 8;
+      nameInput.value = "sprite_slot_" + (currentSlot + 1);
       
-      // Actualizar UI del selector de tamaño
+      const cellSize = getCellSize(spriteW, spriteH);
+      resizePreviews(spriteW, spriteH);
+      editor.resize(spriteW, spriteH, cellSize);
+      editor.clear();
+
+      // Actualizar UI de tamaño
       document.querySelectorAll(".size-btn").forEach(b => {
-        const active = parseInt(b.dataset.w) === spriteW && parseInt(b.dataset.h) === spriteH;
+        const active = parseInt(b.dataset.w) === 8 && parseInt(b.dataset.h) === 8;
         b.classList.toggle("active", active);
         b.setAttribute("aria-checked", active ? "true" : "false");
       });
 
-      const cellSize = getCellSize(spriteW, spriteH);
-      resizePreviews(spriteW, spriteH);
-      editor.resize(spriteW, spriteH, cellSize);
-      editor.loadGrid(state.grid);
-    } catch (e) {
-      console.error("Error loading sprite state", e);
+      saveSpriteState();
+      return;
     }
+
+    spriteW = state.spriteW || 8;
+    spriteH = state.spriteH || 8;
+    nameInput.value = state.name || "custom_sprite";
+    
+    // Actualizar UI del selector de tamaño
+    document.querySelectorAll(".size-btn").forEach(b => {
+      const active = parseInt(b.dataset.w) === spriteW && parseInt(b.dataset.h) === spriteH;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-checked", active ? "true" : "false");
+    });
+
+    const cellSize = getCellSize(spriteW, spriteH);
+    resizePreviews(spriteW, spriteH);
+    editor.resize(spriteW, spriteH, cellSize);
+    editor.loadGrid(state.grid);
+  }
+
+  function loadInitialState() {
+    const savedSlot = localStorage.getItem("gb_painter_current_slot");
+    const slotToLoad = savedSlot !== null ? parseInt(savedSlot) : 0;
+    loadSlot(slotToLoad);
   }
 
   editor.onChange = () => saveSpriteState();
+
+  // === SLOT PICKER ===
+  document.getElementById("slotPicker").addEventListener("click", e => {
+    const btn = e.target.closest(".slot-btn");
+    if (!btn) return;
+    const slotIdx = parseInt(btn.dataset.slot);
+    if (slotIdx === currentSlot) return;
+
+    loadSlot(slotIdx);
+  });
 
   // === PALETA DE COLORES ===
   const paletteEl = document.getElementById("spritePalette");
@@ -188,6 +251,12 @@
   // === BORRAR ===
   document.getElementById("clearBtn").addEventListener("click", () => {
     editor.clear();
+    // También limpiar en el almacenamiento persistente para este slot
+    let allSlots = JSON.parse(localStorage.getItem("gb_painter_slots") || "[]");
+    if (allSlots[currentSlot]) {
+      allSlots[currentSlot].grid = editor.grid; // grid ya está vacío por editor.clear()
+      localStorage.setItem("gb_painter_slots", JSON.stringify(allSlots));
+    }
     localStorage.removeItem("gb_painter_sprite_state");
   });
 
@@ -204,6 +273,6 @@
   });
 
   // Cargar estado inicial
-  loadSpriteState();
+  loadInitialState();
 
 })();
