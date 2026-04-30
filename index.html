@@ -131,7 +131,13 @@
             <span>1x</span><span>2x</span><span>4x</span>
           </div>
 
-          <div class="canvas-label" style="margin-top:24px;">VISTA GLOBAL (10 SLOTS)</div>
+          <div class="canvas-label-row" style="margin-top:24px; display:flex; justify-content:space-between; align-items:center;">
+            <div class="canvas-label">VISTA GLOBAL (10 SLOTS)</div>
+            <label class="toggle-label" style="font-size:10px;">
+              <input type="checkbox" id="toggleGap" checked>
+              Separación
+            </label>
+          </div>
           <div class="slots-preview-grid" id="slotsPreviewGrid">
             <canvas class="slot-preview-canvas" data-slot="0" title="Slot 1"></canvas>
             <canvas class="slot-preview-canvas" data-slot="1" title="Slot 2"></canvas>

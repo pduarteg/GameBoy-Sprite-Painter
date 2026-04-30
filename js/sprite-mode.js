@@ -185,6 +185,28 @@
       loadSlot(slotIdx);
     };
   });
+
+  // === GAP TOGGLE ===
+  const toggleGap = document.getElementById("toggleGap");
+  const previewGrid = document.getElementById("slotsPreviewGrid");
+
+  function setGap(showGap) {
+    previewGrid.classList.toggle("no-gap", !showGap);
+    localStorage.setItem("gb_painter_show_gap", showGap);
+  }
+
+  toggleGap.addEventListener("change", () => {
+    setGap(toggleGap.checked);
+  });
+
+  // Cargar preferencia de gap
+  const savedGap = localStorage.getItem("gb_painter_show_gap");
+  if (savedGap !== null) {
+    const showGap = savedGap === "true";
+    toggleGap.checked = showGap;
+    setGap(showGap);
+  }
+
   const paletteEl = document.getElementById("spritePalette");
   GBExport.GB_COLORS.forEach((c, i) => {
     const sw = document.createElement("div");
