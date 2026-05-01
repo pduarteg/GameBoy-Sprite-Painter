@@ -133,10 +133,13 @@
 
           <div class="canvas-label-row" style="margin-top:24px; display:flex; justify-content:space-between; align-items:center;">
             <div class="canvas-label">VISTA GLOBAL (10 SLOTS)</div>
-            <label class="toggle-label" style="font-size:10px;">
-              <input type="checkbox" id="toggleGap" checked>
-              Separación
-            </label>
+            <div class="switch-container">
+              <span class="switch-label">Separación</span>
+              <label class="switch">
+                <input type="checkbox" id="toggleGap" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
           </div>
           <div class="slots-preview-grid" id="slotsPreviewGrid">
             <canvas class="slot-preview-canvas" data-slot="0" title="Slot 1"></canvas>
