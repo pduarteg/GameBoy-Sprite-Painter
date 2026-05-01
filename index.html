@@ -26,10 +26,12 @@
     </div>
     <nav class="mode-tabs" role="tablist" aria-label="Modo de edición">
       <button class="mode-tab active" id="tab-sprite" role="tab" aria-selected="true" aria-controls="panel-sprite">
-        🎮 Sprites
+        <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>
+        Sprites
       </button>
       <button class="mode-tab" id="tab-tilemap" role="tab" aria-selected="false" aria-controls="panel-tilemap">
-        🗺️ Tile Map
+        <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Tile Map
       </button>
     </nav>
   </header>
@@ -109,7 +111,6 @@
               <button class="btn btn-primary" id="exportBtn">⬇ Exportar código C</button>
               <button class="btn btn-secondary" id="importBtn">⬆ Importar código C</button>
               <button class="btn btn-secondary" id="exportImageBtn">🖼 Exportar como PNG</button>
-              <button class="btn btn-ghost" id="clearBtn">🗑 Borrar canvas</button>
               <button class="btn btn-ghost" id="copyBtn">📋 Copiar al portapapeles</button>
             </div>
           </div>
@@ -118,8 +119,22 @@
         <!-- CENTER: Canvas -->
         <div class="sprite-canvas-area">
           <div class="canvas-label">CANVAS</div>
-          <div class="board-wrapper">
-            <div class="board" id="spriteBoard"></div>
+          <div class="canvas-main-row">
+            <div class="board-wrapper">
+              <div class="board" id="spriteBoard"></div>
+            </div>
+            <aside class="canvas-toolbar">
+              <button class="tool-btn" id="toolClear" title="Borrar canvas">
+                <span class="tool-icon">🗑</span>
+              </button>
+              <div class="tool-sep"></div>
+              <button class="tool-btn" id="toolFlipH" title="Voltear horizontal">
+                <span class="tool-icon">↔</span>
+              </button>
+              <button class="tool-btn" id="toolFlipV" title="Voltear vertical">
+                <span class="tool-icon">↕</span>
+              </button>
+            </aside>
           </div>
           <div class="canvas-label" style="margin-top:20px;">PREVIEW</div>
           <div class="preview-row">
@@ -157,7 +172,7 @@
 
         <!-- RIGHT: Output -->
         <aside class="sprite-output panel-card">
-          <h2 class="panel-title">💾 Código C exportado</h2>
+          <h2 class="panel-title">Código C exportado</h2>
           <textarea id="spriteOut" class="code-out" spellcheck="false"
             placeholder="El código exportado aparece aquí.&#10;También puedes pegar código aquí para importarlo."></textarea>
           <p class="hint">Formato compatible con GBDK-2020</p>

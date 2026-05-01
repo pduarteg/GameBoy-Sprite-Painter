@@ -117,6 +117,18 @@ class PixelEditor {
     this.render();
   }
 
+  /** Voltea el grid horizontalmente */
+  flipHorizontal() {
+    this.grid = this.grid.map(row => [...row].reverse());
+    this.render();
+  }
+
+  /** Voltea el grid verticalmente */
+  flipVertical() {
+    this.grid = [...this.grid].reverse();
+    this.render();
+  }
+
   /** Cambia el tamaño del grid (reinicia el contenido) */
   resize(cols, rows, cellSize) {
     this.cols     = cols;

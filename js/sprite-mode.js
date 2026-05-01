@@ -305,6 +305,24 @@
     link.click();
   });
 
+  // === TOOLBAR CANVAS ===
+  document.getElementById("toolClear").onclick = () => {
+    if (confirm("¿Borrar el canvas actual?")) {
+      editor.clear();
+      saveSpriteState();
+    }
+  };
+
+  document.getElementById("toolFlipH").onclick = () => {
+    editor.flipHorizontal();
+    saveSpriteState();
+  };
+
+  document.getElementById("toolFlipV").onclick = () => {
+    editor.flipVertical();
+    saveSpriteState();
+  };
+
   // === IMPORTAR ===
   document.getElementById("importBtn").addEventListener("click", () => {
     const text   = document.getElementById("spriteOut").value;
@@ -320,18 +338,6 @@
     }
     editor.loadGrid(result.grid);
     nameInput.value = result.name;
-  });
-
-  // === BORRAR ===
-  document.getElementById("clearBtn").addEventListener("click", () => {
-    editor.clear();
-    // También limpiar en el almacenamiento persistente para este slot
-    let allSlots = JSON.parse(localStorage.getItem("gb_painter_slots") || "[]");
-    if (allSlots[currentSlot]) {
-      allSlots[currentSlot].grid = editor.grid; // grid ya está vacío por editor.clear()
-      localStorage.setItem("gb_painter_slots", JSON.stringify(allSlots));
-    }
-    localStorage.removeItem("gb_painter_sprite_state");
   });
 
   // === COPIAR ===

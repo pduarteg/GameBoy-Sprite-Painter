@@ -124,7 +124,7 @@ body {
   font-family: var(--font-ui);
   font-size: 13px;
   font-weight: 600;
-  padding: 8px 20px;
+  padding: 8px 16px;
   border-radius: var(--radius-md);
   border: 1px solid var(--border-normal);
   background: transparent;
@@ -132,6 +132,24 @@ body {
   cursor: pointer;
   transition: all 0.2s ease;
   letter-spacing: 0.3px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.mode-icon {
+  width: 18px;
+  height: 18px;
+  stroke: var(--text-muted);
+  transition: stroke 0.2s ease;
+}
+
+.mode-tab:hover .mode-icon {
+  stroke: var(--text-secondary);
+}
+
+.mode-tab.active .mode-icon {
+  stroke: var(--text-primary);
 }
 
 .mode-tab:hover {
@@ -285,6 +303,56 @@ body {
   color: var(--text-muted);
   letter-spacing: 2px;
   text-transform: uppercase;
+}
+
+.canvas-main-row {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+}
+
+.canvas-toolbar {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 8px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-accent);
+  border-radius: var(--radius-md);
+  box-shadow: var(--shadow-sm);
+}
+
+.tool-btn {
+  width: 36px;
+  height: 36px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-normal);
+  border-radius: var(--radius-sm);
+  color: var(--text-secondary);
+  cursor: pointer;
+  transition: all 0.15s;
+  font-size: 18px;
+}
+
+.tool-btn:hover {
+  border-color: var(--accent-bright);
+  color: var(--text-primary);
+  background: var(--accent-primary);
+  transform: translateY(-2px);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.3);
+}
+
+.tool-btn:active {
+  transform: translateY(0);
+}
+
+.tool-sep {
+  height: 1px;
+  background: var(--border-dim);
+  margin: 4px 0;
 }
 
 .board-wrapper {
