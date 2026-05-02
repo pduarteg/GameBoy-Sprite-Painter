@@ -64,9 +64,10 @@ function gbBytesToGrid(rows) {
  * @param {number} gridW — ancho en pixels
  * @param {number} gridH — alto en pixels
  * @param {"hex"|"binary"} format
+ * @param {boolean} native8x16 — si es true, une tiles verticales en arrays de 32 bytes
  * @returns {string} código C
  */
-function exportSprite(name, fullGrid, gridW, gridH, format) {
+function exportSprite(name, fullGrid, gridW, gridH, format, native8x16) {
   // Divide en bloques 8x8 en orden: izq→der, arriba→abajo
   const tilesX = gridW / 8;
   const tilesY = gridH / 8;
@@ -87,21 +88,33 @@ function exportSprite(name, fullGrid, gridW, gridH, format) {
     }
   }
 
+  // Caso especial: Modo 8x16 nativo (Une tiles verticales)
+  if (native8x16 && gridH === 16) {
+    if (gridW === 8) {
+      // 8x16: un solo array de 32 bytes (Top then Bottom)
+      const bytesTop = gridToGBBytes(blocks[0]);
+      const bytesBottom = gridToGBBytes(blocks[1]);
+      return formatBytesAsC(`${name}_8x16`, [...bytesTop, ...bytesBottom], format);
+    } else if (gridW === 16) {
+      // 16x16: dos arrays de 32 bytes (Columna Izquierda, Columna Derecha)
+      // blocks order is: TL, TR, BL, BR
+      const bytesTL = gridToGBBytes(blocks[0]);
+      const bytesTR = gridToGBBytes(blocks[1]);
+      const bytesBL = gridToGBBytes(blocks[2]);
+      const bytesBR = gridToGBBytes(blocks[3]);
+      
+      const col1 = formatBytesAsC(`${name}_col1_8x16`, [...bytesTL, ...bytesBL], format);
+      const col2 = formatBytesAsC(`${name}_col2_8x16`, [...bytesTR, ...bytesBR], format);
+      return col1 + "\n\n" + col2;
+    }
+  }
+
   const totalTiles = tilesX * tilesY;
   const lines = [];
 
   if (totalTiles === 1) {
     // Nombre simple: custom_sprite[]
-    lines.push(`unsigned char ${name}[] = {`);
-    const bytes = gridToGBBytes(blocks[0]);
-    if (format === "hex") {
-      const vals = bytes.flatMap(b => [toHex(b.low), toHex(b.high)]);
-      lines.push(`  ${vals.slice(0, 8).join(", ")},`);
-      lines.push(`  ${vals.slice(8, 16).join(", ")}`);
-    } else {
-      bytes.forEach(b => lines.push(`  ${toBin(b.low)}, ${toBin(b.high)},`));
-    }
-    lines.push(`};`);
+    lines.push(formatBytesAsC(name, gridToGBBytes(blocks[0]), format));
   } else {
     // Múltiples tiles: custom_sprite_0[], _1[], etc.
     const suffixes = totalTiles === 2
@@ -110,20 +123,41 @@ function exportSprite(name, fullGrid, gridW, gridH, format) {
 
     blocks.forEach((sub, i) => {
       const tileName = `${name}${suffixes[i] || "_" + i}`;
-      lines.push(`unsigned char ${tileName}[] = {`);
-      const bytes = gridToGBBytes(sub);
-      if (format === "hex") {
-        const vals = bytes.flatMap(b => [toHex(b.low), toHex(b.high)]);
-        lines.push(`  ${vals.slice(0, 8).join(", ")},`);
-        lines.push(`  ${vals.slice(8, 16).join(", ")}`);
-      } else {
-        bytes.forEach(b => lines.push(`  ${toBin(b.low)}, ${toBin(b.high)},`));
-      }
-      lines.push(`};`);
+      lines.push(formatBytesAsC(tileName, gridToGBBytes(sub), format));
       if (i < blocks.length - 1) lines.push("");
     });
   }
 
+  return lines.join("\n");
+}
+
+/**
+ * Formatea un array de bytes GBDK como un array de C.
+ * @param {string} name 
+ * @param {{low: number, high: number}[]} gbBytes 
+ * @param {"hex"|"binary"} format 
+ * @returns {string}
+ */
+function formatBytesAsC(name, gbBytes, format) {
+  const lines = [];
+  lines.push(`unsigned char ${name}[] = {`);
+  
+  if (format === "hex") {
+    const vals = gbBytes.flatMap(b => [toHex(b.low), toHex(b.high)]);
+    // Agrupar de 8 en 8 (4 filas de tiles)
+    for (let i = 0; i < vals.length; i += 8) {
+      const chunk = vals.slice(i, i + 8);
+      const comma = (i + 8 < vals.length) ? "," : "";
+      lines.push(`  ${chunk.join(", ")}${comma}`);
+    }
+  } else {
+    gbBytes.forEach((b, i) => {
+      const comma = (i < gbBytes.length - 1) ? "," : "";
+      lines.push(`  ${toBin(b.low)}, ${toBin(b.high)}${comma}`);
+    });
+  }
+  
+  lines.push(`};`);
   return lines.join("\n");
 }
 
@@ -136,8 +170,8 @@ function exportSprite(name, fullGrid, gridW, gridH, format) {
  * @returns {{ name: string, grid: number[][] } | null}
  */
 function importSprite(text, format, gridW, gridH) {
-  const nameMatch = text.match(/unsigned char\s+([a-zA-Z0-9_]+)(?:_(?:top|bottom|left|right|tl|tr|bl|br|0|1|2|3))?\s*\[\]/);
-  const name = nameMatch ? nameMatch[1].replace(/_(?:top|bottom|left|right|tl|tr|bl|br)$/, "") : "custom_sprite";
+  const nameMatch = text.match(/unsigned char\s+([a-zA-Z0-9_]+)(?:_(?:top|bottom|left|right|tl|tr|bl|br|0|1|2|3|8x16|col1_8x16|col2_8x16))?\s*\[\]/);
+  const name = nameMatch ? nameMatch[1].replace(/_(?:top|bottom|left|right|tl|tr|bl|br|8x16|col1_8x16|col2_8x16)$/, "") : "custom_sprite";
 
   let allRows = [];
   if (format === "hex") {

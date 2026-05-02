@@ -70,6 +70,17 @@
   resizePreviews(8, 8);
   const editor = new PixelEditor(boardEl, [preview1, preview2, preview4], 8, 8, 36);
 
+  const native8x16Input = document.getElementById("native8x16");
+  const native8x16Group = document.getElementById("native8x16Group");
+
+  function updateNative8x16Visibility() {
+    if (spriteH === 16) {
+      native8x16Group.style.display = "block";
+    } else {
+      native8x16Group.style.display = "none";
+    }
+  }
+
   // === AUTOSAVE LOGIC ===
   function saveSpriteState() {
     // Intentar recuperar slots existentes o migrar el anterior
@@ -85,7 +96,8 @@
       spriteW,
       spriteH,
       name: nameInput.value,
-      grid: editor.grid
+      grid: editor.grid,
+      native8x16: native8x16Input.checked
     };
     
     allSlots[currentSlot] = state;
@@ -122,6 +134,8 @@
       spriteW = 8;
       spriteH = 8;
       nameInput.value = "sprite_slot_" + (currentSlot + 1);
+      native8x16Input.checked = false;
+      updateNative8x16Visibility();
       
       const cellSize = getCellSize(spriteW, spriteH);
       resizePreviews(spriteW, spriteH);
@@ -143,6 +157,8 @@
     spriteW = state.spriteW || 8;
     spriteH = state.spriteH || 8;
     nameInput.value = state.name || "custom_sprite";
+    native8x16Input.checked = !!state.native8x16;
+    updateNative8x16Visibility();
     
     // Actualizar UI del selector de tamaño
     document.querySelectorAll(".size-btn").forEach(b => {
@@ -166,6 +182,8 @@
   }
 
   editor.onChange = () => saveSpriteState();
+
+  native8x16Input.addEventListener("change", () => saveSpriteState());
 
   // === SLOT PICKER ===
   document.getElementById("slotPicker").addEventListener("click", e => {
@@ -253,6 +271,8 @@
     const cellSize = getCellSize(spriteW, spriteH);
     resizePreviews(spriteW, spriteH);
     editor.resize(spriteW, spriteH, cellSize);
+    updateNative8x16Visibility();
+    saveSpriteState();
   });
 
   // === DROPDOWN DE FORMATO ===
@@ -292,7 +312,8 @@
   document.getElementById("exportBtn").addEventListener("click", () => {
     const name   = nameInput.value.trim() || "custom_sprite";
     const format = formatInput.value;
-    const code   = GBExport.exportSprite(name, editor.grid, spriteW, spriteH, format);
+    const native8x16 = native8x16Input.checked;
+    const code   = GBExport.exportSprite(name, editor.grid, spriteW, spriteH, format, native8x16);
     document.getElementById("spriteOut").value = code;
   });
 
