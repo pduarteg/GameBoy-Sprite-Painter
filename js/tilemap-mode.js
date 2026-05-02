@@ -20,6 +20,9 @@
   /** @type {{ name: string, slotId: number, grid: number[][] }[]} */
   let tileRegistry = [];
 
+  /** Índice del mapa activo (0-4) */
+  let currentMapSlot = 0;
+
   /** Índice del tile activo en tileRegistry (-1 = ninguno) */
   let activeTileIndex = -1;
 
@@ -33,26 +36,107 @@
   // AUTOSAVE LOGIC
   // ====================================================
   function saveTilemapState() {
-    const state = {
-      tileRegistry,
+    // 1. Guardar el registro de tiles (es compartido por todos los mapas)
+    localStorage.setItem("gb_painter_tilemap_registry", JSON.stringify(tileRegistry));
+
+    // 2. Guardar el mapa actual en su slot correspondiente
+    let allMapSlots = JSON.parse(localStorage.getItem("gb_painter_map_slots") || "[]");
+    
+    // Migración inicial si es necesario
+    const legacy = localStorage.getItem("gb_painter_tilemap_state");
+    if (allMapSlots.length === 0 && legacy) {
+       const legacyState = JSON.parse(legacy);
+       // El primer slot hereda lo que había antes
+       allMapSlots[0] = {
+         tileMap: legacyState.tileMap,
+         mapName: legacyState.mapName
+       };
+    }
+
+    allMapSlots[currentMapSlot] = {
       tileMap,
       mapName: document.getElementById("mapName").value
     };
-    localStorage.setItem("gb_painter_tilemap_state", JSON.stringify(state));
+
+    localStorage.setItem("gb_painter_map_slots", JSON.stringify(allMapSlots));
+    localStorage.setItem("gb_painter_current_map_slot", currentMapSlot);
+  }
+
+  function loadMapSlot(slotIndex) {
+    currentMapSlot = slotIndex;
+    
+    // Actualizar UI de slots
+    document.querySelectorAll("#mapSlotPicker .slot-btn").forEach(b => {
+      const active = parseInt(b.dataset.slot) === currentMapSlot;
+      b.classList.toggle("active", active);
+      b.setAttribute("aria-checked", active ? "true" : "false");
+    });
+
+    let allMapSlots = JSON.parse(localStorage.getItem("gb_painter_map_slots") || "[]");
+
+    // Intentar migrar legacy si el array está vacío
+    const legacy = localStorage.getItem("gb_painter_tilemap_state");
+    if (allMapSlots.length === 0 && legacy) {
+      try {
+        const legacyState = JSON.parse(legacy);
+        allMapSlots[0] = {
+          tileMap: legacyState.tileMap,
+          mapName: legacyState.mapName
+        };
+      } catch(e) {}
+    }
+
+    const state = allMapSlots[currentMapSlot];
+    if (state) {
+      tileMap = state.tileMap || Array(MAP_COLS * MAP_ROWS).fill(-1);
+      document.getElementById("mapName").value = state.mapName || ("map_slot_" + (currentMapSlot + 1));
+    } else {
+      // Slot nuevo
+      tileMap = Array(MAP_COLS * MAP_ROWS).fill(-1);
+      document.getElementById("mapName").value = "map_slot_" + (currentMapSlot + 1);
+      saveTilemapState();
+    }
+
+    renderMap();
   }
 
   function loadTilemapState() {
-    const saved = localStorage.getItem("gb_painter_tilemap_state");
-    if (!saved) return;
-    try {
-      const state = JSON.parse(saved);
-      tileRegistry = state.tileRegistry || [];
-      tileMap      = state.tileMap || Array(MAP_COLS * MAP_ROWS).fill(-1);
-      document.getElementById("mapName").value = state.mapName || "level_map";
-    } catch (e) {
-      console.error("Error loading tilemap state", e);
+    // 1. Cargar el registro compartido
+    const savedRegistry = localStorage.getItem("gb_painter_tilemap_registry");
+    if (savedRegistry) {
+      try {
+        tileRegistry = JSON.parse(savedRegistry);
+      } catch (e) {
+        console.error("Error loading tile registry", e);
+      }
+    } else {
+      // Intentar cargar del legacy si no existe el nuevo formato
+      const legacy = localStorage.getItem("gb_painter_tilemap_state");
+      if (legacy) {
+        try {
+          const legacyState = JSON.parse(legacy);
+          tileRegistry = legacyState.tileRegistry || [];
+        } catch(e) {}
+      }
     }
+
+    // 2. Cargar el slot actual
+    const savedSlot = localStorage.getItem("gb_painter_current_map_slot");
+    const slotToLoad = savedSlot !== null ? parseInt(savedSlot) : 0;
+    loadMapSlot(slotToLoad);
   }
+
+  // Event listener para el selector de slots
+  document.getElementById("mapSlotPicker").addEventListener("click", e => {
+    const btn = e.target.closest(".slot-btn");
+    if (!btn) return;
+    const slotIdx = parseInt(btn.dataset.slot);
+    if (slotIdx === currentMapSlot) return;
+
+    // Guardar el actual antes de cambiar
+    saveTilemapState();
+    loadMapSlot(slotIdx);
+  });
 
   // ====================================================
   // MAP CANVAS
@@ -194,7 +278,7 @@
     if (confirm("¿Borrar todo el mapa?")) {
       tileMap = Array(MAP_COLS * MAP_ROWS).fill(-1);
       renderMap();
-      localStorage.removeItem("gb_painter_tilemap_state");
+      saveTilemapState();
     }
   });
 
@@ -411,6 +495,14 @@
 
   // Validación del nombre del tile
   tileVarNameInput.addEventListener("input", function () {
+    let val = this.value.replace(/ /g, "_").replace(/[^a-zA-Z0-9_]/g, "");
+    while (val.length > 0 && /^[0-9]/.test(val)) val = val.substring(1);
+    this.value = val;
+    saveTilemapState();
+  });
+
+  const mapNameInput = document.getElementById("mapName");
+  mapNameInput.addEventListener("input", function () {
     let val = this.value.replace(/ /g, "_").replace(/[^a-zA-Z0-9_]/g, "");
     while (val.length > 0 && /^[0-9]/.test(val)) val = val.substring(1);
     if (val.length > 20) val = val.substring(0, 20);
@@ -635,6 +727,7 @@
     renderTilePalette();
     updateActiveBadge();
     renderMap();
+    saveTilemapState();
 
     alert(`✅ ${addedTiles} tile(s) importados${mapMsg}.`);
     closeImportModal();
