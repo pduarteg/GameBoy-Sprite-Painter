@@ -20,6 +20,7 @@ class PixelEditor {
     this.cellSize      = cellSize;
     this.currentColor  = 3;
     this.isDrawing     = false;
+    this.mode          = "paint"; // "paint" o "move"
     this.colors        = GBExport.GB_COLORS;
 
     // Grid de valores 0-3
@@ -28,6 +29,57 @@ class PixelEditor {
     this._buildGrid();
     this._bindEvents();
     this.render();
+  }
+
+  setMode(mode) {
+    this.mode = mode;
+    this.container.style.cursor = mode === "move" ? "move" : "crosshair";
+  }
+
+  /** Mueve el contenido del grid */
+  shift(dx, dy) {
+    const newGrid = Array.from({ length: this.rows }, () => Array(this.cols).fill(0));
+    let pixelsLost = false;
+
+    for (let y = 0; y < this.rows; y++) {
+      for (let x = 0; x < this.cols; x++) {
+        const val = this.grid[y][x];
+        if (val === 0) continue;
+
+        const nx = x + dx;
+        const ny = y + dy;
+
+        if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows) {
+          newGrid[ny][nx] = val;
+        } else {
+          pixelsLost = true;
+        }
+      }
+    }
+    return { newGrid, pixelsLost };
+  }
+
+  /** Mueve el contenido desde un grid base (útil para arrastrar) */
+  shiftFrom(baseGrid, dx, dy) {
+    const newGrid = Array.from({ length: this.rows }, () => Array(this.cols).fill(0));
+    let pixelsLost = false;
+
+    for (let y = 0; y < this.rows; y++) {
+      for (let x = 0; x < this.cols; x++) {
+        const val = baseGrid[y][x];
+        if (val === 0) continue;
+
+        const nx = x + dx;
+        const ny = y + dy;
+
+        if (nx >= 0 && nx < this.cols && ny >= 0 && ny < this.rows) {
+          newGrid[ny][nx] = val;
+        } else {
+          pixelsLost = true;
+        }
+      }
+    }
+    return { newGrid, pixelsLost };
   }
 
   /** Reconstruye todo el DOM del grid */
@@ -72,6 +124,7 @@ class PixelEditor {
   }
 
   _paint(e) {
+    if (this.mode !== "paint") return;
     const cell = e.target.closest(".cell");
     if (!cell || !this.container.contains(cell)) return;
     const x = parseInt(cell.dataset.x);

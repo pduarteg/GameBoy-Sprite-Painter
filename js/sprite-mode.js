@@ -326,6 +326,55 @@
     link.click();
   });
 
+  // === TOOL SELECTION ===
+  const toolPaint = document.getElementById("toolPaint");
+  const toolMove  = document.getElementById("toolMove");
+
+  function setTool(tool) {
+    toolPaint.classList.toggle("active", tool === "paint");
+    toolMove.classList.toggle("active", tool === "move");
+    editor.setMode(tool);
+  }
+
+  toolPaint.onclick = () => setTool("paint");
+  toolMove.onclick  = () => setTool("move");
+
+  // Lógica de arrastrar para el modo MOVE
+  let isMoving = false;
+  let moveStartPos = null;
+  let originalGrid = null;
+  let currentPixelsLost = false;
+
+  boardEl.addEventListener("mousedown", e => {
+    if (editor.mode !== "move" || e.button !== 0) return;
+    isMoving = true;
+    moveStartPos = { x: e.clientX, y: e.clientY };
+    originalGrid = editor.grid.map(row => [...row]);
+    currentPixelsLost = false;
+  });
+
+  window.addEventListener("mousemove", e => {
+    if (!isMoving) return;
+    const dx = Math.round((e.clientX - moveStartPos.x) / editor.cellSize);
+    const dy = Math.round((e.clientY - moveStartPos.y) / editor.cellSize);
+
+    const result = editor.shiftFrom(originalGrid, dx, dy);
+    editor.loadGrid(result.newGrid);
+    currentPixelsLost = result.pixelsLost;
+  });
+
+  window.addEventListener("mouseup", () => {
+    if (!isMoving) return;
+    isMoving = false;
+
+    if (currentPixelsLost) {
+      if (!confirm("Se perderán algunos píxeles al mover fuera del canvas. ¿Continuar?")) {
+        editor.loadGrid(originalGrid);
+      }
+    }
+    saveSpriteState();
+  });
+
   // === TOOLBAR CANVAS ===
   document.getElementById("toolClear").onclick = () => {
     if (confirm("¿Borrar el canvas actual?")) {
