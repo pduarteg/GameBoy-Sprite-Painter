@@ -173,6 +173,9 @@ function importSprite(text, format, gridW, gridH) {
   const nameMatch = text.match(/unsigned char\s+([a-zA-Z0-9_]+)(?:_(?:top|bottom|left|right|tl|tr|bl|br|0|1|2|3|8x16|col1_8x16|col2_8x16))?\s*\[\]/);
   const name = nameMatch ? nameMatch[1].replace(/_(?:top|bottom|left|right|tl|tr|bl|br|8x16|col1_8x16|col2_8x16)$/, "") : "custom_sprite";
 
+  // Detectar si es formato nativo 8x16 (se exporta por columnas en lugar de por filas)
+  const isNative = /_(?:8x16|col1_8x16|col2_8x16)\s*\[\]/.test(text);
+
   let allRows = [];
   if (format === "hex") {
     const matches = [...text.matchAll(/0x([0-9a-fA-F]{2})\s*,\s*0x([0-9a-fA-F]{2})/g)];
@@ -199,17 +202,27 @@ function importSprite(text, format, gridW, gridH) {
   const fullGrid = Array.from({ length: gridH }, () => Array(gridW).fill(0));
   let rowIdx = 0;
 
-  for (let ty = 0; ty < tilesY; ty++) {
-    for (let tx = 0; tx < tilesX; tx++) {
-      const tileRows = allRows.slice(rowIdx, rowIdx + 8);
-      const sub = gbBytesToGrid(tileRows);
-      for (let y = 0; y < 8; y++) {
-        for (let x = 0; x < 8; x++) {
-          fullGrid[ty * 8 + y][tx * 8 + x] = sub[y][x];
-        }
-      }
-      rowIdx += 8;
+  for (let a = 0; a < totalTiles; a++) {
+    // Determinar tx, ty basado en el orden de exportación
+    let tx, ty;
+    if (isNative) {
+      // Orden por columnas: (0,0), (0,1), (1,0), (1,1)...
+      tx = Math.floor(a / tilesY);
+      ty = a % tilesY;
+    } else {
+      // Orden por filas: (0,0), (0,1), (1,0), (1,1)...
+      ty = Math.floor(a / tilesX);
+      tx = a % tilesX;
     }
+
+    const tileRows = allRows.slice(rowIdx, rowIdx + 8);
+    const sub = gbBytesToGrid(tileRows);
+    for (let y = 0; y < 8; y++) {
+      for (let x = 0; x < 8; x++) {
+        fullGrid[ty * 8 + y][tx * 8 + x] = sub[y][x];
+      }
+    }
+    rowIdx += 8;
   }
 
   return { name, grid: fullGrid };
