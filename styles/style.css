@@ -885,6 +885,32 @@ input:checked + .slider:before {
   gap: 10px;
 }
 
+.mini-editor-import {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+
+.import-textarea {
+  width: 100%;
+  height: 140px;
+  background: var(--bg-elevated);
+  border: 1px solid var(--border-normal);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-family: var(--font-mono);
+  font-size: 11px;
+  color: var(--text-secondary);
+  resize: none;
+  transition: border-color 0.2s;
+}
+
+.import-textarea:focus {
+  outline: none;
+  border-color: var(--accent-bright);
+  background: var(--bg-base);
+}
+
 /* =========================================================
    MAP CANVAS
    ========================================================= */

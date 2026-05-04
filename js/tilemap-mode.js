@@ -397,6 +397,7 @@
   const tileEditorPreview  = document.getElementById("tileEditorPreview");
   const tileVarNameInput   = document.getElementById("tileVarName");
   const tileSlotBadge      = document.getElementById("tileSlotBadge");
+  const singleTileImportInput = document.getElementById("singleTileImport");
 
   let tileEditor = null;
 
@@ -448,6 +449,9 @@
       tileSlotBadge.textContent = nextSlotId();
     }
 
+    // Limpiar textarea de importación
+    singleTileImportInput.value = "";
+
     // Resetear selección de color del mini editor
     document.querySelectorAll("#tilePalette .swatch").forEach((s, i) => {
       s.classList.toggle("selected", i === 3);
@@ -491,6 +495,49 @@
 
   document.getElementById("clearTileBtn").addEventListener("click", () => {
     if (tileEditor) tileEditor.clear();
+  });
+
+  // Importar código de un único tile (Manual)
+  document.getElementById("importSingleTileBtn").addEventListener("click", () => {
+    const text = singleTileImportInput.value.trim();
+    if (!text) {
+      alert("Pega primero el código del tile en el área de texto.");
+      return;
+    }
+
+    const parsed = GBExport.parseTilesH(text);
+    if (parsed && parsed.length > 0) {
+      const tile = parsed[0];
+      if (tileEditor) {
+        tileEditor.loadGrid(tile.grid);
+        tileVarNameInput.value = tile.name;
+        
+        singleTileImportInput.style.borderColor = "var(--accent-bright)";
+        setTimeout(() => { singleTileImportInput.style.borderColor = ""; }, 1000);
+      }
+    } else {
+      alert("No se pudo reconocer un array de tile válido. Asegúrate de que tenga el formato de GBDK.");
+    }
+  });
+
+  // Exportar código de un único tile al textarea
+  document.getElementById("exportSingleTileBtn").addEventListener("click", () => {
+    if (!tileEditor) return;
+    const name = tileVarNameInput.value.trim() || "my_tile";
+    const tileData = [{ name, slotId: 0, grid: tileEditor.grid }];
+    const code = GBExport.generateTilesH(tileData);
+    
+    // Limpiar el header/footer del generateTilesH para dejar solo el array
+    const cleanCode = code
+      .replace("#ifndef TILES_H\n#define TILES_H\n\n", "")
+      .replace("\n#endif\n", "")
+      .trim();
+
+    singleTileImportInput.value = cleanCode;
+    singleTileImportInput.select();
+    
+    singleTileImportInput.style.borderColor = "var(--accent-bright)";
+    setTimeout(() => { singleTileImportInput.style.borderColor = ""; }, 1000);
   });
 
   // Validación del nombre del tile
