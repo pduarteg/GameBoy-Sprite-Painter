@@ -3,46 +3,501 @@
 
 <head>
   <meta charset="utf-8" />
-  <title>GameBoy 8x8 Sprite Painter</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>GameBoy Sprite Painter</title>
+  <meta name="description" content="Herramienta para diseñar sprites y tilemaps para juegos de Game Boy. Exporta código C compatible con GBDK.">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Press+Start+2P&family=Share+Tech+Mono&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="styles/style.css">
-  <!-- Favicon generated with: https://www.favicon-generator.org -->
   <link rel="icon" type="image/png" href="img/icons/favicon-32x32.png">
 </head>
 
 <body>
-  <h2>Paint 8x8 - Palette GameBoy</h2>
-  <div class="board" id="board"></div>
-  <h3>Previsualización</h3>
-  <canvas id="preview" width="64" height="64"></canvas>
-  <div class="palette" id="palette"></div>
-  <div class="format-container">
-    <label class="format-label">Formato:</label>
-    <div class="custom-dropdown" id="formatDropdown">
-      <div class="dropdown-selected" id="dropdownSelected">Binario (8 filas x 2 cols)</div>
-      <div class="dropdown-options" id="dropdownOptions">
-        <div class="dropdown-option" data-value="binary">Binario (8 filas x 2 cols)</div>
-        <div class="dropdown-option" data-value="hex">Hexadecimal (2 filas x 8 cols)</div>
+
+  <!-- HEADER -->
+  <header class="app-header">
+    <div class="header-logo">
+      <span class="logo-gb">GB</span>
+      <div class="header-titles">
+        <h1 class="header-title">Sprite Painter</h1>
+        <p class="header-sub">GBDK-2020 Asset Tool</p>
       </div>
     </div>
-    <input type="hidden" id="formatSelect" value="binary">
-  </div>
-  
-  <div class="name-container">
-    <label class="format-label">Nombre del Array:</label>
-    <input type="text" id="spriteName" value="custom_sprite" class="name-input" maxlength="20">
-  </div>
-  <div>
-    <button id="exportBtn">Export C code</button>
-    <button id="importBtn">Import C code</button>
-    <button id="clearBtn">Clear paint area</button>
-    <button id="copyBtn">Copy code</button>
-  </div>
-  <textarea id="out" placeholder="The exported code appears here or paste one to import."></textarea>
+    <nav class="mode-tabs" role="tablist" aria-label="Modo de edición">
+      <button class="mode-tab active" id="tab-sprite" role="tab" aria-selected="true" aria-controls="panel-sprite">
+        <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 12h4M8 10v4M15 11h.01M18 13h.01"/></svg>
+        Sprites
+      </button>
+      <button class="mode-tab" id="tab-tilemap" role="tab" aria-selected="false" aria-controls="panel-tilemap">
+        <svg class="mode-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+        Tile Map
+      </button>
+    </nav>
+  </header>
 
-  <script src="js/script.js"></script>
-  <footer>
-    <p>© 2025 Percy Duarte Gálvez — GameBoy Sprite Painter</p>
+  <main class="app-main">
+
+    <!-- ============================= -->
+    <!-- PANEL: SPRITE MODE            -->
+    <!-- ============================= -->
+    <section class="mode-panel active" id="panel-sprite" role="tabpanel" aria-labelledby="tab-sprite">
+
+      <div class="sprite-layout">
+
+        <!-- LEFT: Controls -->
+        <aside class="sprite-controls panel-card">
+          <h2 class="panel-title">
+            <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+            Configuración
+          </h2>
+
+          <!-- Canvas Size -->
+          <div class="control-group">
+            <label class="control-label">Tamaño del sprite</label>
+            <div class="size-grid" id="sizePicker" role="radiogroup" aria-label="Tamaño del canvas">
+              <button class="size-btn active" data-w="8"  data-h="8"  id="size-8x8"   role="radio" aria-checked="true">8×8</button>
+              <button class="size-btn"        data-w="8"  data-h="16" id="size-8x16"  role="radio" aria-checked="false">8×16</button>
+              <button class="size-btn"        data-w="16" data-h="8"  id="size-16x8"  role="radio" aria-checked="false">16×8</button>
+              <button class="size-btn"        data-w="16" data-h="16" id="size-16x16" role="radio" aria-checked="false">16×16</button>
+            </div>
+          </div>
+
+          <!-- Slots -->
+          <div class="control-group">
+            <label class="control-label">Slots de Sprite</label>
+            <div class="slots-grid" id="slotPicker" role="radiogroup" aria-label="Slot de sprite">
+              <button class="slot-btn active" data-slot="0" role="radio" aria-checked="true">1</button>
+              <button class="slot-btn"        data-slot="1" role="radio" aria-checked="false">2</button>
+              <button class="slot-btn"        data-slot="2" role="radio" aria-checked="false">3</button>
+              <button class="slot-btn"        data-slot="3" role="radio" aria-checked="false">4</button>
+              <button class="slot-btn"        data-slot="4" role="radio" aria-checked="false">5</button>
+              <button class="slot-btn"        data-slot="5" role="radio" aria-checked="false">6</button>
+              <button class="slot-btn"        data-slot="6" role="radio" aria-checked="false">7</button>
+              <button class="slot-btn"        data-slot="7" role="radio" aria-checked="false">8</button>
+              <button class="slot-btn"        data-slot="8" role="radio" aria-checked="false">9</button>
+              <button class="slot-btn"        data-slot="9" role="radio" aria-checked="false">10</button>
+            </div>
+            <p class="hint">Cada slot guarda un sprite distinto</p>
+          </div>
+
+          <!-- Format -->
+          <div class="control-group">
+            <label class="control-label" for="spriteFormat">Formato de salida</label>
+            <div class="custom-dropdown" id="spriteFormatDropdown">
+              <div class="dropdown-selected" id="spriteDropdownSelected">Hexadecimal</div>
+              <div class="dropdown-options" id="spriteDropdownOptions">
+                <div class="dropdown-option" data-value="hex">Hexadecimal</div>
+                <div class="dropdown-option" data-value="binary">Binario</div>
+              </div>
+            </div>
+            <input type="hidden" id="spriteFormat" value="hex">
+          </div>
+
+          <!-- 8x16 Option -->
+          <div class="control-group" id="native8x16Group" style="display:none;">
+            <div class="switch-container">
+              <span class="switch-label">Exportar 8x16 (GB Native)</span>
+              <label class="switch">
+                <input type="checkbox" id="native8x16">
+                <span class="slider"></span>
+              </label>
+            </div>
+            <p class="hint">Une tiles verticales en un array de 32 bytes</p>
+          </div>
+
+          <!-- Name -->
+          <div class="control-group">
+            <label class="control-label" for="spriteName">Nombre del array</label>
+            <input type="text" id="spriteName" value="custom_sprite" class="name-input" maxlength="20" autocomplete="off" spellcheck="false">
+          </div>
+
+          <!-- Palette -->
+          <div class="control-group">
+            <label class="control-label">Paleta GameBoy</label>
+            <div class="palette" id="spritePalette" role="radiogroup" aria-label="Colores de la paleta"></div>
+            <p class="hint">Teclas 0–3 para seleccionar</p>
+          </div>
+
+          <!-- Actions -->
+          <div class="control-group">
+            <label class="control-label">Acciones</label>
+            <div class="btn-stack">
+              <button class="btn btn-primary" id="exportBtn">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                Exportar código C
+              </button>
+              <button class="btn btn-secondary" id="importBtn">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                Importar código C
+              </button>
+              <button class="btn btn-secondary" id="exportImageBtn">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                Exportar como PNG
+              </button>
+              <button class="btn btn-ghost" id="copyBtn">
+                <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+                Copiar al portapapeles
+              </button>
+            </div>
+          </div>
+        </aside>
+
+        <!-- CENTER: Canvas -->
+        <div class="sprite-canvas-area">
+          <div class="canvas-label">CANVAS</div>
+          <div class="canvas-main-row">
+            <div class="board-wrapper">
+              <div class="board" id="spriteBoard"></div>
+            </div>
+            <aside class="canvas-toolbar">
+              <button class="tool-btn active" id="toolPaint" title="Pintar (Lápiz)">
+                <span class="tool-icon">✏</span>
+              </button>
+              <button class="tool-btn" id="toolMove" title="Mover contenido (Arrastrar)">
+                <span class="tool-icon">✥</span>
+              </button>
+              <div class="tool-sep"></div>
+              <button class="tool-btn" id="toolClear" title="Borrar canvas">
+                <span class="tool-icon">🗑</span>
+              </button>
+              <div class="tool-sep"></div>
+              <button class="tool-btn" id="toolFlipH" title="Voltear horizontal">
+                <span class="tool-icon">↔</span>
+              </button>
+              <button class="tool-btn" id="toolFlipV" title="Voltear vertical">
+                <span class="tool-icon">↕</span>
+              </button>
+            </aside>
+          </div>
+          <div class="canvas-label" style="margin-top:20px;">PREVIEW</div>
+          <div class="preview-row">
+            <canvas id="spritePreview" width="64" height="64" title="Preview 1x"></canvas>
+            <canvas id="spritePreview2x" width="128" height="128" title="Preview 2x"></canvas>
+            <canvas id="spritePreview4x" width="256" height="256" title="Preview 4x"></canvas>
+          </div>
+          <div class="preview-labels">
+            <span>1x</span><span>2x</span><span>4x</span>
+          </div>
+
+          <div class="canvas-label-row" style="margin-top:24px; display:flex; justify-content:space-between; align-items:center;">
+            <div class="canvas-label">VISTA GLOBAL (10 SLOTS)</div>
+            <div class="switch-container">
+              <span class="switch-label">Separación</span>
+              <label class="switch">
+                <input type="checkbox" id="toggleGap" checked>
+                <span class="slider"></span>
+              </label>
+            </div>
+          </div>
+          <div class="slots-preview-grid" id="slotsPreviewGrid">
+            <canvas class="slot-preview-canvas" data-slot="0" title="Slot 1"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="1" title="Slot 2"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="2" title="Slot 3"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="3" title="Slot 4"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="4" title="Slot 5"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="5" title="Slot 6"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="6" title="Slot 7"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="7" title="Slot 8"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="8" title="Slot 9"></canvas>
+            <canvas class="slot-preview-canvas" data-slot="9" title="Slot 10"></canvas>
+          </div>
+        </div>
+
+        <!-- RIGHT: Output -->
+        <aside class="sprite-output panel-card">
+          <h2 class="panel-title">Código C exportado</h2>
+          <textarea id="spriteOut" class="code-out" spellcheck="false"
+            placeholder="El código exportado aparece aquí.&#10;También puedes pegar código aquí para importarlo."></textarea>
+          <p class="hint">Formato compatible con GBDK-2020</p>
+        </aside>
+
+      </div>
+    </section>
+
+    <!-- ============================= -->
+    <!-- PANEL: TILE MAP MODE          -->
+    <!-- ============================= -->
+    <section class="mode-panel" id="panel-tilemap" role="tabpanel" aria-labelledby="tab-tilemap">
+
+      <div class="tilemap-layout">
+
+        <!-- LEFT: Tile Palette -->
+        <aside class="tilemap-palette-panel panel-card" id="tilePalettePanel">
+
+          <div class="panel-title-row" style="display:flex; justify-content:space-between; align-items:center;">
+            <h2 class="panel-title" style="margin-bottom:0;">
+              <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="13.5" cy="6.5" r=".5"/><circle cx="17.5" cy="10.5" r=".5"/><circle cx="8.5" cy="7.5" r=".5"/><circle cx="6.5" cy="12.5" r=".5"/><path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.92 0 1.5-.72 1.5-1.5 0-.44-.18-.86-.44-1.21-.26-.35-.38-.79-.38-1.29 0-1.1 1.1-2 2-2h2.82c3.5 0 6.5-3 6.5-6.5C22 6.5 17.5 2 12 2z"/></svg>
+              Paleta de Tiles
+            </h2>
+            <span class="step-num" id="tileCountBadge" style="width:auto; padding:0 8px; border-radius:12px; font-size:10px;">0 / 128</span>
+          </div>
+          <p class="hint" style="margin-top:4px;">Slot base: 128 (GBDK BKG)</p>
+
+          <div class="tile-palette-list" id="tilePaletteList">
+            <!-- Tiles registrados se insertan aquí -->
+            <div class="empty-palette-msg" id="emptyPaletteMsg">
+              <span>Sin tiles aún.<br>Crea uno abajo 👇</span>
+            </div>
+          </div>
+
+          <div class="palette-actions">
+            <button class="btn btn-primary" id="newTileBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>
+              Nuevo Tile
+            </button>
+            <button class="btn btn-secondary" id="importTilesBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              Importar tiles.h
+            </button>
+          </div>
+
+          <!-- GB Color Palette for tile editor -->
+          <div class="control-group" style="margin-top:16px;">
+            <label class="control-label">Paleta GameBoy</label>
+            <div class="palette" id="tilePalette" role="radiogroup" aria-label="Colores de la paleta"></div>
+          </div>
+
+          <!-- Tile Map Slots -->
+          <div class="control-group">
+            <label class="control-label">Slots de Mapa</label>
+            <div class="slots-grid" id="mapSlotPicker" role="radiogroup" aria-label="Slot de mapa">
+              <button class="slot-btn active" data-slot="0" role="radio" aria-checked="true">1</button>
+              <button class="slot-btn"        data-slot="1" role="radio" aria-checked="false">2</button>
+              <button class="slot-btn"        data-slot="2" role="radio" aria-checked="false">3</button>
+              <button class="slot-btn"        data-slot="3" role="radio" aria-checked="false">4</button>
+              <button class="slot-btn"        data-slot="4" role="radio" aria-checked="false">5</button>
+            </div>
+            <p class="hint">Cada slot guarda un mapa distinto (mismos tiles)</p>
+          </div>
+
+          <!-- Tile Map Export -->
+          <div class="control-group" style="margin-top:16px;">
+            <label class="control-label">Nombre del mapa</label>
+            <input type="text" id="mapName" value="level_map" class="name-input" maxlength="20" autocomplete="off" spellcheck="false">
+          </div>
+
+          <div class="btn-stack" style="margin-top:8px;">
+            <button class="btn btn-primary" id="exportTilemapBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar Todo
+            </button>
+            <button class="btn btn-secondary" id="exportImageMapBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              Exportar como PNG
+            </button>
+            <button class="btn btn-ghost"   id="clearMapBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+              Borrar mapa
+            </button>
+          </div>
+
+        </aside>
+
+        <!-- CENTER: Map Canvas + Mini Editor -->
+        <div class="tilemap-center">
+
+          <!-- Mini Tile Editor (shown when creating/editing a tile) -->
+          <div class="mini-editor-card panel-card" id="miniEditorCard" style="display:none;">
+            <h3 class="panel-title">
+              <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+              Editor de Tile
+            </h3>
+            <div class="mini-editor-layout">
+              <div>
+                <div class="board mini-board" id="tileEditorBoard"></div>
+                <canvas id="tileEditorPreview" width="64" height="64" class="mini-preview"></canvas>
+              </div>
+              <div class="mini-editor-controls">
+                <div class="control-group">
+                  <label class="control-label" for="tileVarName">Nombre variable</label>
+                  <input type="text" id="tileVarName" value="my_tile" class="name-input" maxlength="20" autocomplete="off" spellcheck="false">
+                </div>
+                <div class="control-group">
+                  <label class="control-label">Slot ID (auto)</label>
+                  <div class="slot-badge" id="tileSlotBadge">128</div>
+                </div>
+                <div class="btn-stack">
+                  <button class="btn btn-primary" id="saveTileBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+                    Guardar Tile
+                  </button>
+                  <button class="btn btn-ghost"   id="cancelTileBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+                    Cancelar
+                  </button>
+                  <button class="btn btn-ghost"   id="clearTileBtn">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="3 6 5 6 21 6"/><path d="M19 6v14a2 2 0 0 1-2 2H7a2 2 0 0 1-2-2V6m3 0V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><line x1="10" y1="11" x2="10" y2="17"/><line x1="14" y1="11" x2="14" y2="17"/></svg>
+                    Limpiar
+                  </button>
+                </div>
+              </div>
+              <div class="mini-editor-import">
+                <div class="control-group">
+                  <label class="control-label">Código de tile (C array)</label>
+                  <textarea id="singleTileImport" class="import-textarea" placeholder="Pega aquí el array de C... (ej: const unsigned char tile[] = { ... };)"></textarea>
+                </div>
+                <div class="btn-row" style="margin-top: 8px;">
+                  <button class="btn btn-secondary" id="importSingleTileBtn" title="Cargar código en el editor">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+                    Importar
+                  </button>
+                  <button class="btn btn-secondary" id="exportSingleTileBtn" title="Generar código del editor">
+                    <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+                    Exportar
+                  </button>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- Map Canvas -->
+          <div class="panel-card map-canvas-card">
+            <div class="map-header">
+              <h3 class="panel-title">
+                <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="1 6 1 22 8 18 16 22 23 18 23 2 16 6 8 2 1 6"/><line x1="8" y1="2" x2="8" y2="18"/><line x1="16" y1="6" x2="16" y2="22"/></svg>
+                Tile Map — 32×18
+              </h3>
+              <div class="map-hint-row">
+                <span class="map-selection-badge" id="activeTileBadge">Sin tile seleccionado</span>
+                <div class="switch-container">
+                  <span class="switch-label">Mostrar grid</span>
+                  <label class="switch">
+                    <input type="checkbox" id="showGridToggle" checked>
+                    <span class="slider"></span>
+                  </label>
+                </div>
+                <div class="switch-container">
+                  <span class="switch-label">Coordenadas</span>
+                  <label class="switch">
+                    <input type="checkbox" id="showCoordToggle">
+                    <span class="slider"></span>
+                  </label>
+                </div>
+              </div>
+            </div>
+            <div class="map-canvas-wrapper" id="mapCanvasWrapper">
+              <canvas id="mapCanvas" width="1024" height="576"></canvas>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- RIGHT: Export Output -->
+        <aside class="tilemap-output panel-card">
+          <h2 class="panel-title">Código exportado</h2>
+
+          <div class="output-tabs" role="tablist">
+            <button class="out-tab active" id="outTabTiles" data-target="outTilesH" role="tab">tiles.h</button>
+            <button class="out-tab" id="outTabMain" data-target="outMainC" role="tab">main.c</button>
+          </div>
+
+          <textarea id="outTilesH" class="code-out out-panel active" spellcheck="false"
+            placeholder="Aquí aparecerá el contenido de tiles.h"></textarea>
+          <textarea id="outMainC" class="code-out out-panel" spellcheck="false"
+            placeholder="Aquí aparecerá el código para pegar en main.c"></textarea>
+
+          <div class="btn-row" style="margin-top:8px;">
+            <button class="btn btn-ghost" id="copyTilesBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              Copiar tiles.h
+            </button>
+            <button class="btn btn-ghost" id="copyMainBtn">
+              <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><rect x="8" y="2" width="8" height="4" rx="1" ry="1"/></svg>
+              Copiar main.c
+            </button>
+          </div>
+        </aside>
+
+      </div>
+    </section>
+
+  </main>
+
+  <footer class="app-footer">
+    <p>© 2025 Percy Duarte Gálvez — <strong>GameBoy Sprite Painter</strong> &nbsp;|&nbsp; Compatible con GBDK-2020</p>
   </footer>
+
+  <!-- Import dialog — two-step: tiles.h + main.c -->
+  <div class="modal-overlay" id="importTilesModal" style="display:none;">
+    <div class="modal-card" style="max-width:640px;">
+      <h3 class="panel-title">
+        <svg class="panel-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M22 19a2 2 0 0 1-2 2H4a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h5l2 3h9a2 2 0 0 1 2 2z"/></svg>
+        Importar Mapa Completo
+      </h3>
+
+      <!-- Step indicators -->
+      <div class="import-steps">
+        <div class="import-step active" id="importStep1Indicator">
+          <span class="step-num">1</span>
+          <span class="step-label">tiles.h</span>
+        </div>
+        <div class="import-step-arrow">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+        </div>
+        <div class="import-step" id="importStep2Indicator">
+          <span class="step-num">2</span>
+          <span class="step-label">main.c</span>
+        </div>
+      </div>
+
+      <!-- STEP 1: tiles.h -->
+      <div id="importStepPanel1">
+        <p class="hint" style="margin-bottom:8px;">
+          Pega el contenido completo de tu archivo <strong>tiles.h</strong>:
+        </p>
+        <textarea id="importTilesText" class="code-out" rows="10" spellcheck="false"
+          placeholder="Pega aquí el contenido de tiles.h..."></textarea>
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn btn-primary"  id="importStep1Next">
+            Siguiente
+            <svg class="btn-icon" style="margin-right:0; margin-left:4px;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>
+          </button>
+          <button class="btn btn-ghost"    id="cancelImportTiles">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+      <!-- STEP 2: main.c block -->
+      <div id="importStepPanel2" style="display:none;">
+        <p class="hint" style="margin-bottom:8px;">
+          Ahora pega el bloque de <strong>main.c</strong> exportado
+          (los <code>set_bkg_data</code> + el array del mapa):
+        </p>
+        <textarea id="importMainCText" class="code-out" rows="10" spellcheck="false"
+          placeholder="Pega aquí el bloque de main.c (set_bkg_data + unsigned char mapa[])..."></textarea>
+        <div class="import-step2-hint">
+          <span class="hint" style="display:flex; align-items:center; gap:6px;">
+            <svg class="btn-icon" style="margin:0; flex-shrink:0;" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>
+            Si solo quieres importar los tiles sin reconstruir el mapa, deja este campo vacío y pulsa Importar.
+          </span>
+        </div>
+        <div class="btn-row" style="margin-top:12px;">
+          <button class="btn btn-primary"   id="confirmImportTiles">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>
+            Importar
+          </button>
+          <button class="btn btn-secondary" id="importStep2Back">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="19" y1="12" x2="5" y2="12"/><polyline points="12 19 5 12 12 5"/></svg>
+            Atrás
+          </button>
+          <button class="btn btn-ghost"     id="cancelImportTiles2">
+            <svg class="btn-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            Cancelar
+          </button>
+        </div>
+      </div>
+
+    </div>
+  </div>
+
+  <script src="js/export.js"></script>
+  <script src="js/painter.js"></script>
+  <script src="js/sprite-mode.js"></script>
+  <script src="js/tilemap-mode.js"></script>
+
 </body>
 
 </html>
